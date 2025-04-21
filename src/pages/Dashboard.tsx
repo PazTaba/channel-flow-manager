@@ -1,9 +1,9 @@
-
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { AlertsComponent } from "@/components/alerts/AlertsComponent";
 import { StatusCard } from "@/components/dashboard/StatusCard";
+import { ChannelCircle } from "@/components/dashboard/ChannelCircle";
 
 // Mock data for dashboard
 const channelStats = {
@@ -19,6 +19,55 @@ const topChannels = [
   { id: 3, name: "Remote Site A", bandwidth: "620 Mbps", status: "active" },
   { id: 4, name: "Cloud Storage", bandwidth: "480 Mbps", status: "standby" },
   { id: 5, name: "Archive System", bandwidth: "350 Mbps", status: "active" }
+];
+
+// Mock live data for visual demo (replace with WebSocket/live data for production)
+const arteryChannels = [
+  {
+    name: "Artery 1",
+    channelLink1Status: "online",
+    channelLink2Status: "online",
+    cpu: 47,
+    ram: 61,
+    bitrateIn: 125,
+    bitrateOut: 112,
+  },
+  {
+    name: "Artery 2",
+    channelLink1Status: "online",
+    channelLink2Status: "offline",
+    cpu: 54,
+    ram: 70,
+    bitrateIn: 87,
+    bitrateOut: 80,
+  },
+  {
+    name: "Artery 3",
+    channelLink1Status: "offline",
+    channelLink2Status: "online",
+    cpu: 23,
+    ram: 44,
+    bitrateIn: 32,
+    bitrateOut: 29,
+  },
+  {
+    name: "Artery 4",
+    channelLink1Status: "online",
+    channelLink2Status: "online",
+    cpu: 69,
+    ram: 78,
+    bitrateIn: 143,
+    bitrateOut: 137,
+  },
+  {
+    name: "Artery 5",
+    channelLink1Status: "offline",
+    channelLink2Status: "offline",
+    cpu: 12,
+    ram: 20,
+    bitrateIn: 0,
+    bitrateOut: 0,
+  },
 ];
 
 export default function Dashboard() {
@@ -37,6 +86,16 @@ export default function Dashboard() {
         <StatusCard title="Active" value={channelStats.active} status="active" />
         <StatusCard title="Standby" value={channelStats.standby} status="standby" />
         <StatusCard title="Fault" value={channelStats.fault} status="fault" />
+      </div>
+
+      {/* LIVE CHANNEL MONITOR */}
+      <div>
+        <h2 className="text-lg md:text-xl font-semibold mb-2">Live Channel Status</h2>
+        <div className="grid gap-6 grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-5">
+          {arteryChannels.map((ch, i) => (
+            <ChannelCircle key={ch.name} {...ch} />
+          ))}
+        </div>
       </div>
       
       {/* Bandwidth Usage Graph */}
