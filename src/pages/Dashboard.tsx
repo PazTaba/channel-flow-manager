@@ -25,8 +25,8 @@ const topChannels = [
 const arteryChannels = [
   {
     name: "Artery 1",
-    channelLink1Status: "online",
-    channelLink2Status: "online",
+    channelLink1Status: "online" as "online" | "offline",
+    channelLink2Status: "online" as "online" | "offline",
     cpu: 47,
     ram: 61,
     bitrateIn: 125,
@@ -34,8 +34,8 @@ const arteryChannels = [
   },
   {
     name: "Artery 2",
-    channelLink1Status: "online",
-    channelLink2Status: "offline",
+    channelLink1Status: "online" as "online" | "offline",
+    channelLink2Status: "offline" as "online" | "offline",
     cpu: 54,
     ram: 70,
     bitrateIn: 87,
@@ -43,8 +43,8 @@ const arteryChannels = [
   },
   {
     name: "Artery 3",
-    channelLink1Status: "offline",
-    channelLink2Status: "online",
+    channelLink1Status: "offline" as "online" | "offline",
+    channelLink2Status: "online" as "online" | "offline",
     cpu: 23,
     ram: 44,
     bitrateIn: 32,
@@ -52,8 +52,8 @@ const arteryChannels = [
   },
   {
     name: "Artery 4",
-    channelLink1Status: "online",
-    channelLink2Status: "online",
+    channelLink1Status: "online" as "online" | "offline",
+    channelLink2Status: "online" as "online" | "offline",
     cpu: 69,
     ram: 78,
     bitrateIn: 143,
@@ -61,8 +61,8 @@ const arteryChannels = [
   },
   {
     name: "Artery 5",
-    channelLink1Status: "offline",
-    channelLink2Status: "offline",
+    channelLink1Status: "offline" as "online" | "offline",
+    channelLink2Status: "offline" as "online" | "offline",
     cpu: 12,
     ram: 20,
     bitrateIn: 0,
@@ -92,8 +92,17 @@ export default function Dashboard() {
       <div>
         <h2 className="text-lg md:text-xl font-semibold mb-2">Live Channel Status</h2>
         <div className="grid gap-6 grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-5">
-          {arteryChannels.map((ch, i) => (
-            <ChannelCircle key={ch.name} {...ch} />
+          {arteryChannels.map((ch) => (
+            <ChannelCircle 
+              key={ch.name}
+              name={ch.name}
+              channelLink1Status={ch.channelLink1Status}
+              channelLink2Status={ch.channelLink2Status}
+              cpu={ch.cpu}
+              ram={ch.ram}
+              bitrateIn={ch.bitrateIn}
+              bitrateOut={ch.bitrateOut}
+            />
           ))}
         </div>
       </div>

@@ -1,5 +1,5 @@
 
-import { Cpu, Ram, Activity, ArrowDown, ArrowUp, CircleCheck, CircleX } from "lucide-react";
+import { Cpu, Memory, Activity, ArrowDown, ArrowUp, CircleCheck, CircleX } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 interface ChannelCircleProps {
@@ -48,7 +48,7 @@ export function ChannelCircle({
             <span className="text-xs text-muted-foreground">{cpu}%</span>
           </div>
           <div className="flex flex-col items-center">
-            <Ram className="w-4 h-4 text-muted-foreground" />
+            <Memory className="w-4 h-4 text-muted-foreground" />
             <span className="text-xs text-muted-foreground">{ram}%</span>
           </div>
         </div>
