@@ -8,6 +8,10 @@ import { QuickActions } from "@/components/dashboard/QuickActions";
 import { TopChannels } from "@/components/dashboard/TopChannels";
 import { useState } from "react";
 import type { Channel } from "@/components/dashboard/DashboardChannelsTable";
+import { Button } from "@/components/ui/button";
+import { useForm } from "react-hook-form";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+
 
 // Mock data for dashboard
 const channelStats = {
@@ -63,6 +67,461 @@ const arteryChannels = [
       }
     ]
   },
+  {
+    name: "Artery 1",
+    channelLink1Status: "online" as "online" | "offline",
+    channelLink2Status: "online" as "online" | "offline",
+    cpu: 47,
+    ram: 61,
+    bitrateIn: 125,
+    bitrateOut: 112,
+    broadcastIP: "239.255.1.1",
+    mode: "active" as "active" | "passive",
+    sources: [
+      {
+        name: "Primary Source",
+        ip: "192.168.1.10",
+        status: "enabled" as "enabled" | "fallback"
+      },
+      {
+        name: "Backup Source",
+        ip: "192.168.1.11",
+        status: "fallback" as "enabled" | "fallback"
+      }
+    ],
+    destinations: [
+      {
+        name: "Main Output",
+        ip: "192.168.2.10",
+        type: "primary" as "primary" | "secondary"
+      },
+      {
+        name: "Backup Output",
+        ip: "192.168.2.11",
+        type: "secondary" as "primary" | "secondary"
+      }
+    ]
+  },
+  {
+    name: "Artery 1",
+    channelLink1Status: "online" as "online" | "offline",
+    channelLink2Status: "online" as "online" | "offline",
+    cpu: 47,
+    ram: 61,
+    bitrateIn: 125,
+    bitrateOut: 112,
+    broadcastIP: "239.255.1.1",
+    mode: "active" as "active" | "passive",
+    sources: [
+      {
+        name: "Primary Source",
+        ip: "192.168.1.10",
+        status: "enabled" as "enabled" | "fallback"
+      },
+      {
+        name: "Backup Source",
+        ip: "192.168.1.11",
+        status: "fallback" as "enabled" | "fallback"
+      }
+    ],
+    destinations: [
+      {
+        name: "Main Output",
+        ip: "192.168.2.10",
+        type: "primary" as "primary" | "secondary"
+      },
+      {
+        name: "Backup Output",
+        ip: "192.168.2.11",
+        type: "secondary" as "primary" | "secondary"
+      }
+    ]
+  },
+  {
+    name: "Artery 1",
+    channelLink1Status: "online" as "online" | "offline",
+    channelLink2Status: "online" as "online" | "offline",
+    cpu: 47,
+    ram: 61,
+    bitrateIn: 125,
+    bitrateOut: 112,
+    broadcastIP: "239.255.1.1",
+    mode: "active" as "active" | "passive",
+    sources: [
+      {
+        name: "Primary Source",
+        ip: "192.168.1.10",
+        status: "enabled" as "enabled" | "fallback"
+      },
+      {
+        name: "Backup Source",
+        ip: "192.168.1.11",
+        status: "fallback" as "enabled" | "fallback"
+      }
+    ],
+    destinations: [
+      {
+        name: "Main Output",
+        ip: "192.168.2.10",
+        type: "primary" as "primary" | "secondary"
+      },
+      {
+        name: "Backup Output",
+        ip: "192.168.2.11",
+        type: "secondary" as "primary" | "secondary"
+      }
+    ]
+  },
+  {
+    name: "Artery 1",
+    channelLink1Status: "online" as "online" | "offline",
+    channelLink2Status: "online" as "online" | "offline",
+    cpu: 47,
+    ram: 61,
+    bitrateIn: 125,
+    bitrateOut: 112,
+    broadcastIP: "239.255.1.1",
+    mode: "active" as "active" | "passive",
+    sources: [
+      {
+        name: "Primary Source",
+        ip: "192.168.1.10",
+        status: "enabled" as "enabled" | "fallback"
+      },
+      {
+        name: "Backup Source",
+        ip: "192.168.1.11",
+        status: "fallback" as "enabled" | "fallback"
+      }
+    ],
+    destinations: [
+      {
+        name: "Main Output",
+        ip: "192.168.2.10",
+        type: "primary" as "primary" | "secondary"
+      },
+      {
+        name: "Backup Output",
+        ip: "192.168.2.11",
+        type: "secondary" as "primary" | "secondary"
+      }
+    ]
+  },
+  {
+    name: "Artery 1",
+    channelLink1Status: "online" as "online" | "offline",
+    channelLink2Status: "online" as "online" | "offline",
+    cpu: 47,
+    ram: 61,
+    bitrateIn: 125,
+    bitrateOut: 112,
+    broadcastIP: "239.255.1.1",
+    mode: "active" as "active" | "passive",
+    sources: [
+      {
+        name: "Primary Source",
+        ip: "192.168.1.10",
+        status: "enabled" as "enabled" | "fallback"
+      },
+      {
+        name: "Backup Source",
+        ip: "192.168.1.11",
+        status: "fallback" as "enabled" | "fallback"
+      }
+    ],
+    destinations: [
+      {
+        name: "Main Output",
+        ip: "192.168.2.10",
+        type: "primary" as "primary" | "secondary"
+      },
+      {
+        name: "Backup Output",
+        ip: "192.168.2.11",
+        type: "secondary" as "primary" | "secondary"
+      }
+    ]
+  },
+  {
+    name: "Artery 1",
+    channelLink1Status: "online" as "online" | "offline",
+    channelLink2Status: "online" as "online" | "offline",
+    cpu: 47,
+    ram: 61,
+    bitrateIn: 125,
+    bitrateOut: 112,
+    broadcastIP: "239.255.1.1",
+    mode: "active" as "active" | "passive",
+    sources: [
+      {
+        name: "Primary Source",
+        ip: "192.168.1.10",
+        status: "enabled" as "enabled" | "fallback"
+      },
+      {
+        name: "Backup Source",
+        ip: "192.168.1.11",
+        status: "fallback" as "enabled" | "fallback"
+      }
+    ],
+    destinations: [
+      {
+        name: "Main Output",
+        ip: "192.168.2.10",
+        type: "primary" as "primary" | "secondary"
+      },
+      {
+        name: "Backup Output",
+        ip: "192.168.2.11",
+        type: "secondary" as "primary" | "secondary"
+      }
+    ]
+  },
+  {
+    name: "Artery 1",
+    channelLink1Status: "online" as "online" | "offline",
+    channelLink2Status: "online" as "online" | "offline",
+    cpu: 47,
+    ram: 61,
+    bitrateIn: 125,
+    bitrateOut: 112,
+    broadcastIP: "239.255.1.1",
+    mode: "active" as "active" | "passive",
+    sources: [
+      {
+        name: "Primary Source",
+        ip: "192.168.1.10",
+        status: "enabled" as "enabled" | "fallback"
+      },
+      {
+        name: "Backup Source",
+        ip: "192.168.1.11",
+        status: "fallback" as "enabled" | "fallback"
+      }
+    ],
+    destinations: [
+      {
+        name: "Main Output",
+        ip: "192.168.2.10",
+        type: "primary" as "primary" | "secondary"
+      },
+      {
+        name: "Backup Output",
+        ip: "192.168.2.11",
+        type: "secondary" as "primary" | "secondary"
+      }
+    ]
+  },
+  {
+    name: "Artery 1",
+    channelLink1Status: "online" as "online" | "offline",
+    channelLink2Status: "online" as "online" | "offline",
+    cpu: 47,
+    ram: 61,
+    bitrateIn: 125,
+    bitrateOut: 112,
+    broadcastIP: "239.255.1.1",
+    mode: "active" as "active" | "passive",
+    sources: [
+      {
+        name: "Primary Source",
+        ip: "192.168.1.10",
+        status: "enabled" as "enabled" | "fallback"
+      },
+      {
+        name: "Backup Source",
+        ip: "192.168.1.11",
+        status: "fallback" as "enabled" | "fallback"
+      }
+    ],
+    destinations: [
+      {
+        name: "Main Output",
+        ip: "192.168.2.10",
+        type: "primary" as "primary" | "secondary"
+      },
+      {
+        name: "Backup Output",
+        ip: "192.168.2.11",
+        type: "secondary" as "primary" | "secondary"
+      }
+    ]
+  },
+  {
+    name: "Artery 1",
+    channelLink1Status: "online" as "online" | "offline",
+    channelLink2Status: "online" as "online" | "offline",
+    cpu: 47,
+    ram: 61,
+    bitrateIn: 125,
+    bitrateOut: 112,
+    broadcastIP: "239.255.1.1",
+    mode: "active" as "active" | "passive",
+    sources: [
+      {
+        name: "Primary Source",
+        ip: "192.168.1.10",
+        status: "enabled" as "enabled" | "fallback"
+      },
+      {
+        name: "Backup Source",
+        ip: "192.168.1.11",
+        status: "fallback" as "enabled" | "fallback"
+      }
+    ],
+    destinations: [
+      {
+        name: "Main Output",
+        ip: "192.168.2.10",
+        type: "primary" as "primary" | "secondary"
+      },
+      {
+        name: "Backup Output",
+        ip: "192.168.2.11",
+        type: "secondary" as "primary" | "secondary"
+      }
+    ]
+  },
+  {
+    name: "Artery 1",
+    channelLink1Status: "online" as "online" | "offline",
+    channelLink2Status: "online" as "online" | "offline",
+    cpu: 47,
+    ram: 61,
+    bitrateIn: 125,
+    bitrateOut: 112,
+    broadcastIP: "239.255.1.1",
+    mode: "active" as "active" | "passive",
+    sources: [
+      {
+        name: "Primary Source",
+        ip: "192.168.1.10",
+        status: "enabled" as "enabled" | "fallback"
+      },
+      {
+        name: "Backup Source",
+        ip: "192.168.1.11",
+        status: "fallback" as "enabled" | "fallback"
+      }
+    ],
+    destinations: [
+      {
+        name: "Main Output",
+        ip: "192.168.2.10",
+        type: "primary" as "primary" | "secondary"
+      },
+      {
+        name: "Backup Output",
+        ip: "192.168.2.11",
+        type: "secondary" as "primary" | "secondary"
+      }
+    ]
+  },
+  {
+    name: "Artery 1",
+    channelLink1Status: "online" as "online" | "offline",
+    channelLink2Status: "online" as "online" | "offline",
+    cpu: 47,
+    ram: 61,
+    bitrateIn: 125,
+    bitrateOut: 112,
+    broadcastIP: "239.255.1.1",
+    mode: "active" as "active" | "passive",
+    sources: [
+      {
+        name: "Primary Source",
+        ip: "192.168.1.10",
+        status: "enabled" as "enabled" | "fallback"
+      },
+      {
+        name: "Backup Source",
+        ip: "192.168.1.11",
+        status: "fallback" as "enabled" | "fallback"
+      }
+    ],
+    destinations: [
+      {
+        name: "Main Output",
+        ip: "192.168.2.10",
+        type: "primary" as "primary" | "secondary"
+      },
+      {
+        name: "Backup Output",
+        ip: "192.168.2.11",
+        type: "secondary" as "primary" | "secondary"
+      }
+    ]
+  },
+  {
+    name: "Artery 1",
+    channelLink1Status: "online" as "online" | "offline",
+    channelLink2Status: "online" as "online" | "offline",
+    cpu: 47,
+    ram: 61,
+    bitrateIn: 125,
+    bitrateOut: 112,
+    broadcastIP: "239.255.1.1",
+    mode: "active" as "active" | "passive",
+    sources: [
+      {
+        name: "Primary Source",
+        ip: "192.168.1.10",
+        status: "enabled" as "enabled" | "fallback"
+      },
+      {
+        name: "Backup Source",
+        ip: "192.168.1.11",
+        status: "fallback" as "enabled" | "fallback"
+      }
+    ],
+    destinations: [
+      {
+        name: "Main Output",
+        ip: "192.168.2.10",
+        type: "primary" as "primary" | "secondary"
+      },
+      {
+        name: "Backup Output",
+        ip: "192.168.2.11",
+        type: "secondary" as "primary" | "secondary"
+      }
+    ]
+  },
+  {
+    name: "Artery 1",
+    channelLink1Status: "online" as "online" | "offline",
+    channelLink2Status: "online" as "online" | "offline",
+    cpu: 47,
+    ram: 61,
+    bitrateIn: 125,
+    bitrateOut: 112,
+    broadcastIP: "239.255.1.1",
+    mode: "active" as "active" | "passive",
+    sources: [
+      {
+        name: "Primary Source",
+        ip: "192.168.1.10",
+        status: "enabled" as "enabled" | "fallback"
+      },
+      {
+        name: "Backup Source",
+        ip: "192.168.1.11",
+        status: "fallback" as "enabled" | "fallback"
+      }
+    ],
+    destinations: [
+      {
+        name: "Main Output",
+        ip: "192.168.2.10",
+        type: "primary" as "primary" | "secondary"
+      },
+      {
+        name: "Backup Output",
+        ip: "192.168.2.11",
+        type: "secondary" as "primary" | "secondary"
+      }
+    ]
+  }
   // ... Add similar detailed data for other channels
 ];
 
@@ -70,12 +529,12 @@ const arteryChannels = [
 
 // Mock data for channels with extended properties
 const channelsData: Channel[] = [
-  { 
-    id: 1, 
-    name: "Main Feed", 
-    source: "Network Switch A", 
-    destination: "Distribution Node", 
-    bandwidth: "1.2 Gbps", 
+  {
+    id: 1,
+    name: "Main Feed",
+    source: "Network Switch A",
+    destination: "Distribution Node",
+    bandwidth: "1.2 Gbps",
     status: "active",
     broadcastIp: "239.255.0.1",
     mode: "active",
@@ -87,12 +546,12 @@ const channelsData: Channel[] = [
     bitrateIn: 125,
     bitrateOut: 118
   },
-  { 
-    id: 2, 
-    name: "Backup Link", 
-    source: "Backup Server", 
-    destination: "Failover System", 
-    bandwidth: "850 Mbps", 
+  {
+    id: 2,
+    name: "Backup Link",
+    source: "Backup Server",
+    destination: "Failover System",
+    bandwidth: "850 Mbps",
     status: "active",
     broadcastIp: "239.255.0.2",
     mode: "active",
@@ -104,12 +563,12 @@ const channelsData: Channel[] = [
     bitrateIn: 87,
     bitrateOut: 80
   },
-  { 
-    id: 3, 
-    name: "Remote Site A", 
-    source: "Remote Location", 
-    destination: "HQ System", 
-    bandwidth: "620 Mbps", 
+  {
+    id: 3,
+    name: "Remote Site A",
+    source: "Remote Location",
+    destination: "HQ System",
+    bandwidth: "620 Mbps",
     status: "active",
     broadcastIp: "239.255.0.3",
     mode: "active",
@@ -121,12 +580,12 @@ const channelsData: Channel[] = [
     bitrateIn: 32,
     bitrateOut: 29
   },
-  { 
-    id: 4, 
-    name: "Cloud Storage", 
-    source: "On-Prem Server", 
-    destination: "Cloud Provider", 
-    bandwidth: "480 Mbps", 
+  {
+    id: 4,
+    name: "Cloud Storage",
+    source: "On-Prem Server",
+    destination: "Cloud Provider",
+    bandwidth: "480 Mbps",
     status: "standby",
     broadcastIp: "239.255.0.4",
     mode: "passive",
@@ -138,12 +597,12 @@ const channelsData: Channel[] = [
     bitrateIn: 0,
     bitrateOut: 0
   },
-  { 
-    id: 5, 
-    name: "Archive System", 
-    source: "Content Server", 
-    destination: "Archive Storage", 
-    bandwidth: "350 Mbps", 
+  {
+    id: 5,
+    name: "Archive System",
+    source: "Content Server",
+    destination: "Archive Storage",
+    bandwidth: "350 Mbps",
     status: "active",
     broadcastIp: "239.255.0.5",
     mode: "active",
@@ -155,12 +614,12 @@ const channelsData: Channel[] = [
     bitrateIn: 143,
     bitrateOut: 137
   },
-  { 
-    id: 6, 
-    name: "External Feed", 
-    source: "Partner Network", 
-    destination: "Processing Server", 
-    bandwidth: "720 Mbps", 
+  {
+    id: 6,
+    name: "External Feed",
+    source: "Partner Network",
+    destination: "Processing Server",
+    bandwidth: "720 Mbps",
     status: "fault",
     broadcastIp: "239.255.0.6",
     mode: "active",
@@ -172,7 +631,8 @@ const channelsData: Channel[] = [
     bitrateIn: 0,
     bitrateOut: 0
   },
-  { id: 7, name: "Media Channel", source: "Media Server", destination: "CDN Node", bandwidth: "920 Mbps", status: "active",
+  {
+    id: 7, name: "Media Channel", source: "Media Server", destination: "CDN Node", bandwidth: "920 Mbps", status: "active",
     broadcastIp: "239.255.0.7",
     mode: "active",
     online: true,
@@ -181,8 +641,10 @@ const channelsData: Channel[] = [
     encryptionEnabled: false,
     protocol: "UDP TS",
     bitrateIn: 92,
-    bitrateOut: 85 },
-  { id: 8, name: "Secure Link", source: "Secure Server", destination: "Encrypted Storage", bandwidth: "290 Mbps", status: "active",
+    bitrateOut: 85
+  },
+  {
+    id: 8, name: "Secure Link", source: "Secure Server", destination: "Encrypted Storage", bandwidth: "290 Mbps", status: "active",
     broadcastIp: "239.255.0.8",
     mode: "active",
     online: true,
@@ -191,8 +653,10 @@ const channelsData: Channel[] = [
     encryptionEnabled: false,
     protocol: "UDP TS",
     bitrateIn: 29,
-    bitrateOut: 22 },
-  { id: 9, name: "Analytics Feed", source: "User Systems", destination: "Analytics Server", bandwidth: "180 Mbps", status: "standby",
+    bitrateOut: 22
+  },
+  {
+    id: 9, name: "Analytics Feed", source: "User Systems", destination: "Analytics Server", bandwidth: "180 Mbps", status: "standby",
     broadcastIp: "239.255.0.9",
     mode: "passive",
     online: false,
@@ -201,8 +665,10 @@ const channelsData: Channel[] = [
     encryptionEnabled: true,
     protocol: "UDP TS",
     bitrateIn: 18,
-    bitrateOut: 11 },
-  { id: 10, name: "Disaster Recovery", source: "Primary DC", destination: "Secondary DC", bandwidth: "650 Mbps", status: "active",
+    bitrateOut: 11
+  },
+  {
+    id: 10, name: "Disaster Recovery", source: "Primary DC", destination: "Secondary DC", bandwidth: "650 Mbps", status: "active",
     broadcastIp: "239.255.0.10",
     mode: "active",
     online: true,
@@ -211,11 +677,33 @@ const channelsData: Channel[] = [
     encryptionEnabled: false,
     protocol: "UDP TS",
     bitrateIn: 65,
-    bitrateOut: 58 },
+    bitrateOut: 58
+  },
 ];
 
 export default function Dashboard() {
   const [selectedChannel, setSelectedChannel] = useState<Channel | null>(null);
+  const [openChannelDialog, setOpenChannelDialog] = useState(false);
+
+
+  const form = useForm<Channel>({
+    defaultValues: selectedChannel || {
+      id: 0,
+      name: "",
+      source: "",
+      destination: "",
+      bandwidth: "",
+      status: "active",
+      broadcastIp: "",
+      mode: "active",
+      online: true,
+      primaryDestinationIp: "",
+      secondaryDestinationIp: "",
+      encryptionEnabled: false,
+      protocol: "UDP TS"
+    }
+  });
+
 
   // Map Channel type to the format expected by ChannelDetailsDialog
   const mapChannelToDialogFormat = (channel: Channel) => {
@@ -251,6 +739,28 @@ export default function Dashboard() {
     };
   };
 
+  const handleCreateChannel = () => {
+    setSelectedChannel(null);
+    form.reset({
+      id: channelsData.length + 1,
+      name: "",
+      source: "",
+      destination: "",
+      bandwidth: "",
+      status: "active",
+      broadcastIp: "",
+      mode: "active",
+      online: true,
+      primaryDestinationIp: "",
+      secondaryDestinationIp: "",
+      encryptionEnabled: false,
+      protocol: "UDP TS",
+      bitrateIn: 0,
+      bitrateOut: 0
+    });
+    setOpenChannelDialog(true);
+  };
+
   const handleViewChannel = (channel: Channel) => {
     setSelectedChannel(channel);
   };
@@ -259,34 +769,89 @@ export default function Dashboard() {
     <div className="space-y-6 animate-fade-in">
       <div className="flex justify-between items-center">
         <h1 className="text-3xl font-bold tracking-tight">Dashboard</h1>
+
         <Badge variant="outline" className="text-sm">
           Last updated: Just now
         </Badge>
       </div>
-      
+
       <DashboardStatusCards stats={channelStats} />
 
-      <div>
-        <h2 className="text-lg md:text-xl font-semibold mb-2">Live Channel Status</h2>
-        <div className="grid gap-6 grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-5">
-          {arteryChannels.map((ch) => (
-            <ChannelDetailsDialog key={ch.name} channel={ch} />
-          ))}
-        </div>
-      </div>
-      
-      <DashboardChannelsTable 
+      <Card>
+        <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+          <CardTitle className="text-lg md:text-xl font-semibold">Live Channel Status</CardTitle>
+          <Button onClick={handleCreateChannel}>Add Channel</Button>
+        </CardHeader>
+        <CardContent>
+          <div className="relative">
+            {/* Scrollable container */}
+            <div
+              className="flex space-x-4 overflow-x-auto px-2 
+          scrollbar-none [-ms-overflow-style:none] 
+          [scrollbar-width:none] 
+          [&::-webkit-scrollbar]:hidden"
+              id="channel-scroll-container"
+            >
+              {arteryChannels.map((ch, index) => (
+                <ChannelDetailsDialog key={index} channel={ch} />
+              ))}
+            </div>
+
+            {/* Scroll right button */}
+            <button
+              onClick={() => {
+                const container = document.getElementById("channel-scroll-container");
+                const cards = container?.querySelectorAll("div > [role='dialog'], div > div");
+                if (container && cards?.length) {
+                  // Find width of 5 cards + spacing
+                  const cardWidth = cards[0].offsetWidth;
+                  const cardSpacing = 16; // This matches your space-x-4 (4 × 4px = 16px)
+                  const scrollAmount = (cardWidth + cardSpacing) * 5;
+                  container.scrollBy({ left: scrollAmount, behavior: "smooth" });
+                }
+              }}
+              className="absolute right-0 top-1/2 transform -translate-y-1/2 bg-gray-200 shadow-md rounded-full p-2 z-10"
+            >
+              <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 text-black" viewBox="0 0 20 20" fill="currentColor">
+                <path fillRule="evenodd" d="M7.293 14.707a1 1 0 010-1.414L10.586 10 7.293 6.707a1 1 0 011.414-1.414l4 4a1 1 0 010 1.414l-4 4a1 1 0 01-1.414 0z" clipRule="evenodd" />
+              </svg>
+            </button>
+
+            {/* Scroll left button */}
+            <button
+              onClick={() => {
+                const container = document.getElementById("channel-scroll-container");
+                const cards = container?.querySelectorAll("div > [role='dialog'], div > div");
+                if (container && cards?.length) {
+                  // Find width of 5 cards + spacing
+                  const cardWidth = cards[0].offsetWidth;
+                  const cardSpacing = 16; // This matches your space-x-4 (4 × 4px = 16px)
+                  const scrollAmount = (cardWidth + cardSpacing) * 5;
+                  container.scrollBy({ left: -scrollAmount, behavior: "smooth" });
+                }
+              }}
+              className="absolute left-0 top-1/2 transform -translate-y-1/2 bg-gray-200 shadow-md rounded-full p-2 z-10"
+            >
+              <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 text-black" viewBox="0 0 20 20" fill="currentColor">
+                <path fillRule="evenodd" d="M12.707 5.293a1 1 0 010 1.414L9.414 10l3.293 3.293a1 1 0 01-1.414 1.414l-4-4a1 1 0 010-1.414l4-4a1 1 0 011.414 0z" clipRule="evenodd" />
+              </svg>
+            </button>
+          </div>
+        </CardContent>
+      </Card>
+
+      <DashboardChannelsTable
         data={channelsData}
         onViewChannel={handleViewChannel}
       />
-      
+
       <BandwidthUsageGraph />
-      
+
       <div className="grid gap-4 md:grid-cols-2 grid-cols-1">
         <TopChannels channels={topChannels} />
         <AlertsComponent title="System Alerts" />
       </div>
-      
+
       <QuickActions />
 
       {selectedChannel && (

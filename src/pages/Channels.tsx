@@ -362,12 +362,11 @@ export default function Channels() {
   return (
     <div className="space-y-6 animate-fade-in">
       <div className="flex justify-between items-center">
-        <h1 className="text-3xl font-bold tracking-tight">Channels</h1>
         <Button onClick={handleCreateChannel}>Add Channel</Button>
       </div>
       
       {/* Channel Health Overview */}
-      <div className="grid gap-4 lg:grid-cols-5 md:grid-cols-3 grid-cols-2">
+      {/* <div className="grid gap-4 lg:grid-cols-5 md:grid-cols-3 grid-cols-2">
         {channelsData.slice(0, 5).map(channel => (
           <ChannelCircle
             key={channel.id}
@@ -380,7 +379,7 @@ export default function Channels() {
             bitrateOut={channel.bitrateOut || 0}
           />
         ))}
-      </div>
+      </div> */}
       
       <Card>
         <CardHeader>
