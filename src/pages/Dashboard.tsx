@@ -274,16 +274,17 @@ export default function Dashboard() {
             <ChannelDetailsDialog key={ch.name} channel={ch} />
           ))}
           {channelsData.map((channel) => (
-            <ChannelCircle
-              key={channel.id}
-              name={channel.name}
-              channelLink1Status={channel.primaryDestinationIp ? "online" : "offline"}
-              channelLink2Status={channel.secondaryDestinationIp ? "online" : "offline"}
-              cpu={Math.floor(Math.random() * 80) + 10}
-              ram={Math.floor(Math.random() * 70) + 20}
-              bitrateIn={channel.bitrateIn || 0}
-              bitrateOut={channel.bitrateOut || 0}
-            />
+            <div key={channel.id} onClick={() => handleViewChannel(channel)} className="cursor-pointer">
+              <ChannelCircle
+                name={channel.name}
+                channelLink1Status={channel.primaryDestinationIp ? "online" : "offline"}
+                channelLink2Status={channel.secondaryDestinationIp ? "online" : "offline"}
+                cpu={Math.floor(Math.random() * 80) + 10}
+                ram={Math.floor(Math.random() * 70) + 20}
+                bitrateIn={channel.bitrateIn || 0}
+                bitrateOut={channel.bitrateOut || 0}
+              />
+            </div>
           ))}
         </div>
       </div>
