@@ -2,11 +2,12 @@ import { Badge } from "@/components/ui/badge";
 import { AlertsComponent } from "@/components/alerts/AlertsComponent";
 import { ChannelDetailsDialog } from "@/components/dashboard/ChannelDetailsDialog";
 import { DashboardStatusCards } from "@/components/dashboard/DashboardStatusCards";
-import { DashboardChannelsTable, Channel } from "@/components/dashboard/DashboardChannelsTable";
+import { DashboardChannelsTable } from "@/components/dashboard/DashboardChannelsTable";
 import { BandwidthUsageGraph } from "@/components/dashboard/BandwidthUsageGraph";
 import { QuickActions } from "@/components/dashboard/QuickActions";
 import { TopChannels } from "@/components/dashboard/TopChannels";
 import { useState } from "react";
+import type { Channel } from "@/components/dashboard/DashboardChannelsTable";
 
 // Mock data for dashboard
 const channelStats = {
@@ -16,12 +17,13 @@ const channelStats = {
   fault: 2
 };
 
+// Fix the TopChannel status type to match the expected union type
 const topChannels = [
-  { id: 1, name: "Main Feed", bandwidth: "1.2 Gbps", status: "active" },
-  { id: 2, name: "Backup Link", bandwidth: "850 Mbps", status: "active" },
-  { id: 3, name: "Remote Site A", bandwidth: "620 Mbps", status: "active" },
-  { id: 4, name: "Cloud Storage", bandwidth: "480 Mbps", status: "standby" },
-  { id: 5, name: "Archive System", bandwidth: "350 Mbps", status: "active" }
+  { id: 1, name: "Main Feed", bandwidth: "1.2 Gbps", status: "active" as const },
+  { id: 2, name: "Backup Link", bandwidth: "850 Mbps", status: "active" as const },
+  { id: 3, name: "Remote Site A", bandwidth: "620 Mbps", status: "active" as const },
+  { id: 4, name: "Cloud Storage", bandwidth: "480 Mbps", status: "standby" as const },
+  { id: 5, name: "Archive System", bandwidth: "350 Mbps", status: "active" as const }
 ];
 
 // Update the mock data with additional channel information
@@ -64,24 +66,7 @@ const arteryChannels = [
   // ... Add similar detailed data for other channels
 ];
 
-// Add channel type definition and mock data from Channels.tsx
-type Channel = {
-  id: number;
-  name: string;
-  source: string;
-  destination: string;
-  bandwidth: string;
-  status: "active" | "standby" | "fault";
-  broadcastIp: string;
-  mode: "active" | "passive";
-  online: boolean;
-  primaryDestinationIp?: string;
-  secondaryDestinationIp?: string;
-  encryptionEnabled?: boolean;
-  protocol?: string;
-  bitrateIn?: number;
-  bitrateOut?: number;
-};
+// Remove the local Channel type definition since we're now importing it
 
 // Mock data for channels with extended properties
 const channelsData: Channel[] = [
