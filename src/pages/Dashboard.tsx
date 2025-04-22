@@ -8,6 +8,7 @@ import { QuickActions } from "@/components/dashboard/QuickActions";
 import { TopChannels } from "@/components/dashboard/TopChannels";
 import { useState } from "react";
 import type { Channel } from "@/components/dashboard/DashboardChannelsTable";
+import { ChannelCircle } from "@/components/dashboard/ChannelCircle";
 
 // Mock data for dashboard
 const channelStats = {
@@ -271,6 +272,18 @@ export default function Dashboard() {
         <div className="grid gap-6 grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-5">
           {arteryChannels.map((ch) => (
             <ChannelDetailsDialog key={ch.name} channel={ch} />
+          ))}
+          {channelsData.map((channel) => (
+            <ChannelCircle
+              key={channel.id}
+              name={channel.name}
+              channelLink1Status={channel.primaryDestinationIp ? "online" : "offline"}
+              channelLink2Status={channel.secondaryDestinationIp ? "online" : "offline"}
+              cpu={Math.floor(Math.random() * 80) + 10}
+              ram={Math.floor(Math.random() * 70) + 20}
+              bitrateIn={channel.bitrateIn || 0}
+              bitrateOut={channel.bitrateOut || 0}
+            />
           ))}
         </div>
       </div>
