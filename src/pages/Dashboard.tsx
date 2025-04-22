@@ -339,6 +339,40 @@ export default function Dashboard() {
     ? channelsData 
     : channelsData.filter(channel => channel.status === statusFilter);
 
+  // Map Channel type to the format expected by ChannelDetailsDialog
+  const mapChannelToDialogFormat = (channel: Channel) => {
+    return {
+      name: channel.name,
+      channelLink1Status: channel.online ? "online" : "offline" as "online" | "offline",
+      channelLink2Status: channel.secondaryDestinationIp ? "online" : "offline" as "online" | "offline",
+      cpu: Math.floor(Math.random() * 80) + 10, // Mockup CPU load
+      ram: Math.floor(Math.random() * 70) + 20, // Mockup RAM usage
+      bitrateIn: channel.bitrateIn || 0,
+      bitrateOut: channel.bitrateOut || 0,
+      broadcastIP: channel.broadcastIp,
+      mode: channel.mode,
+      sources: [
+        {
+          name: "Primary Source",
+          ip: channel.source,
+          status: "enabled" as "enabled" | "fallback"
+        }
+      ],
+      destinations: [
+        {
+          name: "Main Output",
+          ip: channel.primaryDestinationIp || "",
+          type: "primary" as "primary" | "secondary"
+        },
+        ...(channel.secondaryDestinationIp ? [{
+          name: "Backup Output",
+          ip: channel.secondaryDestinationIp,
+          type: "secondary" as "primary" | "secondary"
+        }] : [])
+      ]
+    };
+  };
+
   return (
     <div className="space-y-6 animate-fade-in">
       <div className="flex justify-between items-center">
@@ -477,7 +511,7 @@ export default function Dashboard() {
       </Card>
 
       {selectedChannel && (
-        <ChannelDetailsDialog channel={selectedChannel} />
+        <ChannelDetailsDialog channel={mapChannelToDialogFormat(selectedChannel)} />
       )}
     </div>
   );
