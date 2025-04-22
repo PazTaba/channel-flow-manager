@@ -4,6 +4,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { AlertsComponent } from "@/components/alerts/AlertsComponent";
 import { StatusCard } from "@/components/dashboard/StatusCard";
 import { ChannelCircle } from "@/components/dashboard/ChannelCircle";
+import { ChannelDetailsDialog } from "@/components/dashboard/ChannelDetailsDialog";
 
 // Mock data for dashboard
 const channelStats = {
@@ -21,7 +22,7 @@ const topChannels = [
   { id: 5, name: "Archive System", bandwidth: "350 Mbps", status: "active" }
 ];
 
-// Mock live data for visual demo (replace with WebSocket/live data for production)
+// Update the mock data with additional channel information
 const arteryChannels = [
   {
     name: "Artery 1",
@@ -31,43 +32,34 @@ const arteryChannels = [
     ram: 61,
     bitrateIn: 125,
     bitrateOut: 112,
+    broadcastIP: "239.255.1.1",
+    mode: "active" as "active" | "passive",
+    sources: [
+      {
+        name: "Primary Source",
+        ip: "192.168.1.10",
+        status: "enabled" as "enabled" | "fallback"
+      },
+      {
+        name: "Backup Source",
+        ip: "192.168.1.11",
+        status: "fallback" as "enabled" | "fallback"
+      }
+    ],
+    destinations: [
+      {
+        name: "Main Output",
+        ip: "192.168.2.10",
+        type: "primary" as "primary" | "secondary"
+      },
+      {
+        name: "Backup Output",
+        ip: "192.168.2.11",
+        type: "secondary" as "primary" | "secondary"
+      }
+    ]
   },
-  {
-    name: "Artery 2",
-    channelLink1Status: "online" as "online" | "offline",
-    channelLink2Status: "offline" as "online" | "offline",
-    cpu: 54,
-    ram: 70,
-    bitrateIn: 87,
-    bitrateOut: 80,
-  },
-  {
-    name: "Artery 3",
-    channelLink1Status: "offline" as "online" | "offline",
-    channelLink2Status: "online" as "online" | "offline",
-    cpu: 23,
-    ram: 44,
-    bitrateIn: 32,
-    bitrateOut: 29,
-  },
-  {
-    name: "Artery 4",
-    channelLink1Status: "online" as "online" | "offline",
-    channelLink2Status: "online" as "online" | "offline",
-    cpu: 69,
-    ram: 78,
-    bitrateIn: 143,
-    bitrateOut: 137,
-  },
-  {
-    name: "Artery 5",
-    channelLink1Status: "offline" as "online" | "offline",
-    channelLink2Status: "offline" as "online" | "offline",
-    cpu: 12,
-    ram: 20,
-    bitrateIn: 0,
-    bitrateOut: 0,
-  },
+  // ... Add similar detailed data for other channels
 ];
 
 export default function Dashboard() {
@@ -88,21 +80,12 @@ export default function Dashboard() {
         <StatusCard title="Fault" value={channelStats.fault} status="fault" />
       </div>
 
-      {/* LIVE CHANNEL MONITOR */}
+      {/* Update the Live Channel Status section */}
       <div>
         <h2 className="text-lg md:text-xl font-semibold mb-2">Live Channel Status</h2>
         <div className="grid gap-6 grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-5">
           {arteryChannels.map((ch) => (
-            <ChannelCircle 
-              key={ch.name}
-              name={ch.name}
-              channelLink1Status={ch.channelLink1Status}
-              channelLink2Status={ch.channelLink2Status}
-              cpu={ch.cpu}
-              ram={ch.ram}
-              bitrateIn={ch.bitrateIn}
-              bitrateOut={ch.bitrateOut}
-            />
+            <ChannelDetailsDialog key={ch.name} channel={ch} />
           ))}
         </div>
       </div>

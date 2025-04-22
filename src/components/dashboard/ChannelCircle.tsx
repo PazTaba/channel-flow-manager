@@ -1,4 +1,3 @@
-
 import { Cpu, MemoryStick, Activity, ArrowDown, ArrowUp, CircleCheck, CircleX } from "lucide-react";
 import { cn } from "@/lib/utils";
 
@@ -28,7 +27,7 @@ export function ChannelCircle({
     status === "online" ? <CircleCheck className={cn("w-4 h-4", statusColor(status))} /> : <CircleX className={cn("w-4 h-4", statusColor(status))} />;
 
   return (
-    <div className="flex flex-col items-center justify-center">
+    <div className="flex flex-col items-center justify-center hover:opacity-90 transition-opacity">
       {/* Main Channel Circle */}
       <div className="relative animate-fade-in rounded-full bg-card shadow-lg border border-muted flex items-center justify-center w-32 h-32 md:w-36 md:h-36 transition-all">
         <span className="text-lg md:text-xl font-bold text-primary">{name}</span>
