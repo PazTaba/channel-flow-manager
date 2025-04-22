@@ -8,10 +8,14 @@ import { QuickActions } from "@/components/dashboard/QuickActions";
 import { TopChannels } from "@/components/dashboard/TopChannels";
 import { useState } from "react";
 import type { Channel } from "@/components/dashboard/DashboardChannelsTable";
+<<<<<<< HEAD
 import { Button } from "@/components/ui/button";
 import { useForm } from "react-hook-form";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 
+=======
+import { ChannelCircle } from "@/components/dashboard/ChannelCircle";
+>>>>>>> 7f17d2bf862660c56d19db096393b13fe84050cd
 
 // Mock data for dashboard
 const channelStats = {
