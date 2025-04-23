@@ -1,3 +1,4 @@
+
 import { useState } from "react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -84,6 +85,7 @@ export default function Sources() {
   const [sources, setSources] = useState<Source[]>(initialSources);
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [isEditMode, setIsEditMode] = useState(false);
+  const [searchQuery, setSearchQuery] = useState("");
   const [formValues, setFormValues] = useState<Source>({
     id: 0,
     name: "",
@@ -159,8 +161,6 @@ export default function Sources() {
     source.unencryptedMulticastAddress.includes(searchQuery) ||
     String(source.portNumber).includes(searchQuery)
   );
-
-  const [searchQuery, setSearchQuery] = useState("");
 
   // Define table columns
   const columns: Column<Source>[] = [
@@ -277,7 +277,7 @@ export default function Sources() {
         </CardHeader>
         <CardContent>
           <ResponsiveDataTable
-            data={sources}
+            data={filteredSources}
             columns={columns}
             keyField="id"
             searchable={true}
