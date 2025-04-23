@@ -1,4 +1,4 @@
-import { Badge } from "@/components/ui/badge";
+
 import { AlertsComponent } from "@/components/alerts/AlertsComponent";
 import { ChannelDetailsDialog } from "@/components/dashboard/ChannelDetailsDialog";
 import { DashboardStatusCards } from "@/components/dashboard/DashboardStatusCards";
@@ -6,11 +6,42 @@ import { DashboardChannelsTable } from "@/components/dashboard/DashboardChannels
 import { BandwidthUsageGraph } from "@/components/dashboard/BandwidthUsageGraph";
 import { QuickActions } from "@/components/dashboard/QuickActions";
 import { TopChannels } from "@/components/dashboard/TopChannels";
-import { useState } from "react";
+
 import type { Channel } from "@/components/dashboard/DashboardChannelsTable";
-import { Button } from "@/components/ui/button";
+
 import { useForm } from "react-hook-form";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+
+import { useState } from "react";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { ResponsiveDataTable, Column } from "@/components/data/ResponsiveDataTable";
+import { Badge } from "@/components/ui/badge";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+  DialogFooter,
+} from "@/components/ui/dialog";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Label } from "@/components/ui/label";
+import { Input } from "@/components/ui/input";
+import { Settings, Database, Share2, Activity, ArrowUp, ArrowDown } from "lucide-react";
 
 
 // Mock data for dashboard
@@ -525,9 +556,7 @@ const arteryChannels = [
   // ... Add similar detailed data for other channels
 ];
 
-// Remove the local Channel type definition since we're now importing it
 
-// Mock data for channels with extended properties
 const channelsData: Channel[] = [
   {
     id: 1,
@@ -684,7 +713,7 @@ const channelsData: Channel[] = [
 export default function Dashboard() {
   const [selectedChannel, setSelectedChannel] = useState<Channel | null>(null);
   const [openChannelDialog, setOpenChannelDialog] = useState(false);
-
+  const [isCreatingNewChannel, setIsCreatingNewChannel] = useState(false);
 
   const form = useForm<Channel>({
     defaultValues: selectedChannel || {
@@ -765,6 +794,24 @@ export default function Dashboard() {
     setSelectedChannel(channel);
   };
 
+  const handleSaveChannel = () => {
+    const formValues = form.getValues();
+
+    if (isCreatingNewChannel) {
+      channelsData.push(formValues);
+      channelStats.total += 1;
+      if (formValues.status === 'active') channelStats.active += 1;
+      if (formValues.status === 'standby') channelStats.standby += 1;
+      if (formValues.status === 'fault') channelStats.fault += 1;
+    } else if (selectedChannel) {
+      const index = channelsData.findIndex(ch => ch.id === selectedChannel.id);
+      if (index !== -1) {
+        channelsData[index] = formValues;
+      }
+    }
+    setOpenChannelDialog(false);
+  };
+
   return (
     <div className="space-y-6 animate-fade-in">
       <div className="flex justify-between items-center">
@@ -782,6 +829,279 @@ export default function Dashboard() {
           <CardTitle className="text-lg md:text-xl font-semibold">Live Channel Status</CardTitle>
           <Button onClick={handleCreateChannel}>Add Channel</Button>
         </CardHeader>
+        <Dialog open={openChannelDialog} onOpenChange={setOpenChannelDialog}>
+          <DialogContent className="max-w-3xl">
+            <DialogHeader>
+              <DialogTitle>{selectedChannel ? `Channel: ${selectedChannel.name}` : 'Create New Channel'}</DialogTitle>
+              <DialogDescription>
+                {selectedChannel ? 'View or edit channel configuration' : 'Configure a new channel'}
+              </DialogDescription>
+            </DialogHeader>
+
+            <Tabs defaultValue="general">
+              <TabsList className="mb-4">
+                <TabsTrigger value="general">
+                  <Settings className="h-4 w-4 mr-2" />
+                  General
+                </TabsTrigger>
+                <TabsTrigger value="sources">
+                  <Database className="h-4 w-4 mr-2" />
+                  Sources
+                </TabsTrigger>
+                <TabsTrigger value="destinations">
+                  <Share2 className="h-4 w-4 mr-2" />
+                  Destinations
+                </TabsTrigger>
+                <TabsTrigger value="monitoring">
+                  <Activity className="h-4 w-4 mr-2" />
+                  Monitoring
+                </TabsTrigger>
+              </TabsList>
+
+              <TabsContent value="general" className="space-y-4">
+                <div className="grid gap-4 grid-cols-2">
+                  <div className="space-y-2">
+                    <Label htmlFor="channel-name">Channel Name</Label>
+                    <Input
+                      id="channel-name"
+                      defaultValue={selectedChannel?.name}
+                      placeholder="Enter channel name"
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="broadcast-ip">Broadcast IP Address</Label>
+                    <Input
+                      id="broadcast-ip"
+                      defaultValue={selectedChannel?.broadcastIp}
+                      placeholder="e.g., 239.255.0.1"
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="channel-mode">Channel Mode</Label>
+                    <Select defaultValue={selectedChannel?.mode || "active"}>
+                      <SelectTrigger id="channel-mode">
+                        <SelectValue placeholder="Select mode" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="active">Active</SelectItem>
+                        <SelectItem value="passive">Passive</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="channel-status">Channel Status</Label>
+                    <Select defaultValue={selectedChannel?.online ? "online" : "offline"}>
+                      <SelectTrigger id="channel-status">
+                        <SelectValue placeholder="Select status" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="online">Online</SelectItem>
+                        <SelectItem value="offline">Offline</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="channel-protocol">Protocol</Label>
+                    <Select defaultValue={selectedChannel?.protocol || "UDP TS"}>
+                      <SelectTrigger id="channel-protocol">
+                        <SelectValue placeholder="Select protocol" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="UDP TS">UDP TS</SelectItem>
+                        <SelectItem value="RTP">RTP</SelectItem>
+                        <SelectItem value="RIST">RIST</SelectItem>
+                        <SelectItem value="SRT">SRT</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="encryption">Encryption</Label>
+                    <Select defaultValue={selectedChannel?.encryptionEnabled ? "enabled" : "disabled"}>
+                      <SelectTrigger id="encryption">
+                        <SelectValue placeholder="Select encryption" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="enabled">Enabled</SelectItem>
+                        <SelectItem value="disabled">Disabled</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+                </div>
+              </TabsContent>
+
+              <TabsContent value="sources" className="space-y-4">
+                <div className="space-y-4">
+                  <div className="flex justify-between items-center">
+                    <h3 className="text-lg font-medium">Source Configuration</h3>
+                    <Button variant="outline" size="sm">Add Source</Button>
+                  </div>
+
+                  <Card>
+                    <CardContent className="pt-6">
+                      <div className="grid gap-4 grid-cols-2">
+                        <div className="space-y-2">
+                          <Label htmlFor="source-name">Source Name</Label>
+                          <Input id="source-name" defaultValue={selectedChannel?.source} />
+                        </div>
+                        <div className="space-y-2">
+                          <Label htmlFor="source-ip">Source IP</Label>
+                          <Input id="source-ip" placeholder="Enter source IP" />
+                        </div>
+                        <div className="space-y-2">
+                          <Label htmlFor="source-status">Default Status</Label>
+                          <Select defaultValue="enabled">
+                            <SelectTrigger id="source-status">
+                              <SelectValue placeholder="Select status" />
+                            </SelectTrigger>
+                            <SelectContent>
+                              <SelectItem value="enabled">Always Enabled</SelectItem>
+                              <SelectItem value="fallback">Fallback Only</SelectItem>
+                            </SelectContent>
+                          </Select>
+                        </div>
+                        <div className="space-y-2">
+                          <Label htmlFor="source-protocol">Protocol</Label>
+                          <Select defaultValue="UDP TS">
+                            <SelectTrigger id="source-protocol">
+                              <SelectValue placeholder="Select protocol" />
+                            </SelectTrigger>
+                            <SelectContent>
+                              <SelectItem value="UDP TS">UDP TS</SelectItem>
+                              <SelectItem value="RTP">RTP</SelectItem>
+                            </SelectContent>
+                          </Select>
+                        </div>
+                      </div>
+                    </CardContent>
+                  </Card>
+                </div>
+              </TabsContent>
+
+              <TabsContent value="destinations" className="space-y-4">
+                <div className="space-y-4">
+                  <div className="flex justify-between items-center">
+                    <h3 className="text-lg font-medium">Destination Configuration</h3>
+                    <Button variant="outline" size="sm">Add Destination</Button>
+                  </div>
+
+                  <Card>
+                    <CardHeader>
+                      <CardTitle className="text-base">Primary Destination</CardTitle>
+                    </CardHeader>
+                    <CardContent>
+                      <div className="grid gap-4 grid-cols-2">
+                        <div className="space-y-2">
+                          <Label htmlFor="destination-name">Destination Name</Label>
+                          <Input id="destination-name" defaultValue={selectedChannel?.destination} />
+                        </div>
+                        <div className="space-y-2">
+                          <Label htmlFor="destination-ip">Destination IP</Label>
+                          <Input id="destination-ip" defaultValue={selectedChannel?.primaryDestinationIp} />
+                        </div>
+                        <div className="space-y-2">
+                          <Label htmlFor="ttl">Time to Live (TTL)</Label>
+                          <Input id="ttl" type="number" defaultValue="64" />
+                        </div>
+                        <div className="space-y-2">
+                          <Label htmlFor="max-packet">Max Packet Size</Label>
+                          <Input id="max-packet" type="number" defaultValue="1500" />
+                        </div>
+                      </div>
+                    </CardContent>
+                  </Card>
+
+                  {selectedChannel?.secondaryDestinationIp && (
+                    <Card>
+                      <CardHeader>
+                        <CardTitle className="text-base">Secondary Destination</CardTitle>
+                      </CardHeader>
+                      <CardContent>
+                        <div className="grid gap-4 grid-cols-2">
+                          <div className="space-y-2">
+                            <Label htmlFor="sec-destination-name">Destination Name</Label>
+                            <Input id="sec-destination-name" defaultValue={`${selectedChannel?.destination} (Backup)`} />
+                          </div>
+                          <div className="space-y-2">
+                            <Label htmlFor="sec-destination-ip">Destination IP</Label>
+                            <Input id="sec-destination-ip" defaultValue={selectedChannel?.secondaryDestinationIp} />
+                          </div>
+                        </div>
+                      </CardContent>
+                    </Card>
+                  )}
+                </div>
+              </TabsContent>
+
+              <TabsContent value="monitoring" className="space-y-4">
+                {selectedChannel && (
+                  <div className="space-y-6">
+                    <div className="grid grid-cols-2 gap-4">
+                      <Card>
+                        <CardHeader>
+                          <CardTitle className="text-base">Bandwidth</CardTitle>
+                        </CardHeader>
+                        <CardContent>
+                          <div className="flex justify-between items-center">
+                            <div className="flex items-center">
+                              <ArrowDown className="h-5 w-5 mr-2 text-blue-500" />
+                              <span>Input</span>
+                            </div>
+                            <span className="font-mono">{selectedChannel.bitrateIn || 0} Mbps</span>
+                          </div>
+                          <div className="flex justify-between items-center mt-4">
+                            <div className="flex items-center">
+                              <ArrowUp className="h-5 w-5 mr-2 text-emerald-500" />
+                              <span>Output</span>
+                            </div>
+                            <span className="font-mono">{selectedChannel.bitrateOut || 0} Mbps</span>
+                          </div>
+                        </CardContent>
+                      </Card>
+
+                      <Card>
+                        <CardHeader>
+                          <CardTitle className="text-base">Link Status</CardTitle>
+                        </CardHeader>
+                        <CardContent className="space-y-4">
+                          <div className="flex justify-between items-center">
+                            <span>Primary Link</span>
+                            <Badge variant="outline" className={selectedChannel.primaryDestinationIp ? "border-green-500 text-green-600" : "border-red-500 text-red-600"}>
+                              {selectedChannel.primaryDestinationIp ? "Connected" : "Disconnected"}
+                            </Badge>
+                          </div>
+                          {selectedChannel.secondaryDestinationIp && (
+                            <div className="flex justify-between items-center">
+                              <span>Secondary Link</span>
+                              <Badge variant="outline" className="border-green-500 text-green-600">
+                                Connected
+                              </Badge>
+                            </div>
+                          )}
+                        </CardContent>
+                      </Card>
+                    </div>
+
+                    <Card>
+                      <CardHeader>
+                        <CardTitle className="text-base">Performance Metrics</CardTitle>
+                      </CardHeader>
+                      <CardContent>
+                        <div className="h-[200px] w-full flex items-center justify-center bg-muted/30 rounded-md">
+                          <p className="text-muted-foreground">Performance graph would appear here</p>
+                        </div>
+                      </CardContent>
+                    </Card>
+                  </div>
+                )}
+              </TabsContent>
+            </Tabs>
+
+            <DialogFooter>
+              <Button variant="outline" onClick={() => setOpenChannelDialog(false)}>Cancel</Button>
+              <Button type="submit">Save Changes</Button>
+            </DialogFooter>
+          </DialogContent>
+        </Dialog>
         <CardContent>
           <div className="relative">
             {/* Scrollable container */}
