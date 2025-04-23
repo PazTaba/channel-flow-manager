@@ -4,7 +4,6 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Button } from "@/components/ui/button";
 import { ResponsiveDataTable, Column } from "@/components/data/ResponsiveDataTable";
 import { Badge } from "@/components/ui/badge";
-import { LanguageToggle } from "@/components/LanguageToggle";
 import { useLanguage } from "@/hooks/useLanguage";
 import { translations } from "@/i18n/translations";
 import { Source } from "@/types/source";
@@ -75,7 +74,6 @@ export default function Sources() {
           {t.title}
         </h1>
         <div className="flex gap-2">
-          <LanguageToggle />
           <Button onClick={() => {}}>
             <Plus className="h-4 w-4 mr-2" />
             {t.addSource}
