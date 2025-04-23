@@ -1,7 +1,7 @@
 
 import { Button } from "@/components/ui/button";
 import { useLanguage } from "@/hooks/useLanguage";
-import { Globe } from "lucide-react";
+import { Languages } from "lucide-react";
 
 export function LanguageToggle() {
   const { language, setLanguage } = useLanguage();
@@ -12,12 +12,13 @@ export function LanguageToggle() {
 
   return (
     <Button
-      variant="outline"
+      variant="ghost"
       size="icon"
       onClick={toggleLanguage}
-      className="w-10 h-10"
+      className="w-9 h-9 rounded-full"
     >
-      <Globe className="h-4 w-4" />
+      <Languages className="h-4 w-4" />
+      <span className="sr-only">Toggle Language</span>
     </Button>
   );
 }

@@ -19,6 +19,7 @@ import {
   SheetTrigger,
 } from "@/components/ui/sheet";
 import { ThemeModeToggle } from "@/components/ThemeModeToggle";
+import { LanguageToggle } from "@/components/LanguageToggle";
 import { cn } from "@/lib/utils";
 
 interface HeaderProps {
@@ -56,6 +57,9 @@ export function Header({ className, collapsed }: HeaderProps) {
       <div className="flex items-center space-x-4">
         {/* Theme Toggle */}
         <ThemeModeToggle />
+        
+        {/* Language Toggle */}
+        <LanguageToggle />
         
         {/* Notifications */}
         <Sheet>
