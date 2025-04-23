@@ -61,7 +61,7 @@ const topChannels = [
   { id: 5, name: "Archive System", bandwidth: "350 Mbps", status: "active" as const }
 ];
 
-// Update the mock data with additional channel information
+
 const arteryChannels = [
   {
     name: "Artery 1",
