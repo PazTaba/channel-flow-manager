@@ -1124,7 +1124,7 @@ export default function Dashboard() {
                 const cards = container?.querySelectorAll("div > [role='dialog'], div > div");
                 if (container && cards?.length) {
                   // Find width of 5 cards + spacing
-                  const cardWidth = cards[0].offsetWidth;
+                  const cardWidth = (cards[0] as HTMLElement).offsetWidth;
                   const cardSpacing = 16; // This matches your space-x-4 (4 × 4px = 16px)
                   const scrollAmount = (cardWidth + cardSpacing) * 5;
                   container.scrollBy({ left: scrollAmount, behavior: "smooth" });
@@ -1144,7 +1144,7 @@ export default function Dashboard() {
                 const cards = container?.querySelectorAll("div > [role='dialog'], div > div");
                 if (container && cards?.length) {
                   // Find width of 5 cards + spacing
-                  const cardWidth = cards[0].offsetWidth;
+                  const cardWidth = (cards[0] as HTMLElement).offsetWidth;
                   const cardSpacing = 16; // This matches your space-x-4 (4 × 4px = 16px)
                   const scrollAmount = (cardWidth + cardSpacing) * 5;
                   container.scrollBy({ left: -scrollAmount, behavior: "smooth" });
