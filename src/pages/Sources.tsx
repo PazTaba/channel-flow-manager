@@ -20,6 +20,12 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import {
+  Tabs,
+  TabsContent,
+  TabsList,
+  TabsTrigger
+} from "@/components/ui/tabs";
+import {
   Select,
   SelectContent,
   SelectItem,
@@ -28,8 +34,9 @@ import {
 } from "@/components/ui/select";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { Checkbox } from "@/components/ui/checkbox";
 import { Plus, MoreVertical, PlayCircle, PauseCircle, Trash2, Pencil } from "lucide-react";
-import { useForm } from "react-hook-form";
+import { useToast } from "@/hooks/use-toast";
 
 // Type definition for a source
 type Source = {
@@ -40,6 +47,10 @@ type Source = {
   portNumber: number;
   status: "play" | "pause";
   arterySendTo: string;
+  protocol?: string;
+  advanced?: boolean;
+  encryption?: string;
+  igmpSourceFiltering?: boolean;
 };
 
 // Mock data for arterial channels
@@ -59,7 +70,11 @@ const initialSources: Source[] = [
     unencryptedMulticastAddress: "239.255.2.1",
     portNumber: 11111,
     status: "play",
-    arterySendTo: "all"
+    arterySendTo: "all",
+    protocol: "UDP TS",
+    advanced: true,
+    encryption: "None",
+    igmpSourceFiltering: true
   },
   {
     id: 2,
@@ -68,7 +83,11 @@ const initialSources: Source[] = [
     unencryptedMulticastAddress: "239.255.2.2",
     portNumber: 11111,
     status: "play",
-    arterySendTo: "artery1"
+    arterySendTo: "artery1",
+    protocol: "UDP TS",
+    advanced: true,
+    encryption: "None",
+    igmpSourceFiltering: true
   },
   {
     id: 3,
@@ -77,11 +96,29 @@ const initialSources: Source[] = [
     unencryptedMulticastAddress: "239.255.2.3",
     portNumber: 11111,
     status: "pause",
-    arterySendTo: "artery2"
+    arterySendTo: "artery2",
+    protocol: "UDP TS",
+    advanced: true,
+    encryption: "None",
+    igmpSourceFiltering: true
+  },
+  {
+    id: 4,
+    name: "Source 4",
+    encryptedMulticastAddress: "239.255.1.4",
+    unencryptedMulticastAddress: "239.255.2.4",
+    portNumber: 11111,
+    status: "play",
+    arterySendTo: "artery3",
+    protocol: "UDP TS",
+    advanced: true,
+    encryption: "None",
+    igmpSourceFiltering: true
   }
 ];
 
 export default function Sources() {
+  const { toast } = useToast();
   const [sources, setSources] = useState<Source[]>(initialSources);
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [isEditMode, setIsEditMode] = useState(false);
@@ -93,8 +130,20 @@ export default function Sources() {
     unencryptedMulticastAddress: "",
     portNumber: 11111,
     status: "play",
-    arterySendTo: "all"
+    arterySendTo: "all",
+    protocol: "UDP TS",
+    advanced: true,
+    encryption: "None",
+    igmpSourceFiltering: true
   });
+  
+  // Filter sources based on search query
+  const filteredSources = sources.filter(source =>
+    source.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+    source.encryptedMulticastAddress.includes(searchQuery) ||
+    source.unencryptedMulticastAddress.includes(searchQuery) ||
+    String(source.portNumber).includes(searchQuery)
+  );
 
   // Handle opening the dialog for adding a new source
   const handleAddSource = () => {
@@ -106,7 +155,11 @@ export default function Sources() {
       unencryptedMulticastAddress: "",
       portNumber: 11111,
       status: "play",
-      arterySendTo: "all"
+      arterySendTo: "all",
+      protocol: "UDP TS",
+      advanced: true,
+      encryption: "None",
+      igmpSourceFiltering: true
     });
     setIsDialogOpen(true);
   };
@@ -121,6 +174,10 @@ export default function Sources() {
   // Handle deleting a source
   const handleDeleteSource = (id: number) => {
     setSources(sources.filter(source => source.id !== id));
+    toast({
+      title: "Source deleted",
+      description: "The source has been successfully removed",
+    });
   };
 
   // Handle toggling the status of a source
@@ -130,6 +187,14 @@ export default function Sources() {
         ? { ...source, status: source.status === "play" ? "pause" : "play" }
         : source
     ));
+    
+    const updatedSource = sources.find(source => source.id === id);
+    const newStatus = updatedSource?.status === "play" ? "pause" : "play";
+    
+    toast({
+      title: `Source ${newStatus === "play" ? "started" : "paused"}`,
+      description: `The source has been ${newStatus === "play" ? "activated" : "paused"} successfully`,
+    });
   };
 
   // Handle form input changes
@@ -147,20 +212,22 @@ export default function Sources() {
       setSources(sources.map(source =>
         source.id === formValues.id ? formValues : source
       ));
+      
+      toast({
+        title: "Source updated",
+        description: "The source has been updated successfully",
+      });
     } else {
       // Add new source
       setSources([...sources, formValues]);
+      
+      toast({
+        title: "Source added",
+        description: "New source has been added successfully",
+      });
     }
     setIsDialogOpen(false);
   };
-
-  // Filter sources based on search query
-  const filteredSources = sources.filter(source =>
-    source.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-    source.encryptedMulticastAddress.includes(searchQuery) ||
-    source.unencryptedMulticastAddress.includes(searchQuery) ||
-    String(source.portNumber).includes(searchQuery)
-  );
 
   // Define table columns
   const columns: Column<Source>[] = [
@@ -291,7 +358,7 @@ export default function Sources() {
 
       {/* Source Add/Edit Dialog */}
       <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
-        <DialogContent className="sm:max-w-[500px]">
+        <DialogContent className="sm:max-w-[600px]">
           <DialogHeader>
             <DialogTitle>{isEditMode ? "Edit Source" : "Add New Source"}</DialogTitle>
             <DialogDescription>
@@ -301,101 +368,149 @@ export default function Sources() {
             </DialogDescription>
           </DialogHeader>
 
-          <div className="grid gap-4 py-4">
-            <div className="space-y-2">
-              <Label htmlFor="name">Source Name</Label>
-              <Input
-                id="name"
-                value={formValues.name}
-                onChange={(e) => handleFormChange("name", e.target.value)}
-                placeholder="Enter source name"
-              />
-            </div>
+          <Tabs defaultValue="basic" className="w-full">
+            <TabsList className="grid grid-cols-2">
+              <TabsTrigger value="basic">Basic Settings</TabsTrigger>
+              <TabsTrigger value="advanced">Advanced Settings</TabsTrigger>
+            </TabsList>
+            
+            <TabsContent value="basic" className="space-y-4 pt-4">
+              <div className="grid gap-4">
+                <div className="space-y-2">
+                  <Label htmlFor="name">Source Name</Label>
+                  <Input
+                    id="name"
+                    value={formValues.name}
+                    onChange={(e) => handleFormChange("name", e.target.value)}
+                    placeholder="Enter source name"
+                  />
+                </div>
 
-            <div className="space-y-2">
-              <Label htmlFor="encrypted-multicast">Encrypted Multicast Address</Label>
-              <Input
-                id="encrypted-multicast"
-                value={formValues.encryptedMulticastAddress}
-                onChange={(e) => handleFormChange("encryptedMulticastAddress", e.target.value)}
-                placeholder="e.g., 239.255.1.1"
-              />
-            </div>
+                <div className="space-y-2">
+                  <Label htmlFor="encrypted-multicast">Encrypted Multicast Address</Label>
+                  <Input
+                    id="encrypted-multicast"
+                    value={formValues.encryptedMulticastAddress}
+                    onChange={(e) => handleFormChange("encryptedMulticastAddress", e.target.value)}
+                    placeholder="e.g., 239.255.1.1"
+                  />
+                </div>
 
-            <div className="space-y-2">
-              <Label htmlFor="unencrypted-multicast">Unencrypted Multicast Address</Label>
-              <Input
-                id="unencrypted-multicast"
-                value={formValues.unencryptedMulticastAddress}
-                onChange={(e) => handleFormChange("unencryptedMulticastAddress", e.target.value)}
-                placeholder="e.g., 239.255.2.1"
-              />
-            </div>
+                <div className="space-y-2">
+                  <Label htmlFor="unencrypted-multicast">Unencrypted Multicast Address</Label>
+                  <Input
+                    id="unencrypted-multicast"
+                    value={formValues.unencryptedMulticastAddress}
+                    onChange={(e) => handleFormChange("unencryptedMulticastAddress", e.target.value)}
+                    placeholder="e.g., 239.255.2.1"
+                  />
+                </div>
 
-            <div className="space-y-2">
-              <Label htmlFor="port">Port Number</Label>
-              <Input
-                id="port"
-                type="number"
-                value={formValues.portNumber}
-                onChange={(e) => handleFormChange("portNumber", parseInt(e.target.value))}
-                placeholder="Default: 11111"
-              />
-              <p className="text-xs text-muted-foreground">Default port is 11111</p>
-            </div>
+                <div className="space-y-2">
+                  <Label htmlFor="port">Port Number</Label>
+                  <Input
+                    id="port"
+                    type="number"
+                    value={formValues.portNumber}
+                    onChange={(e) => handleFormChange("portNumber", parseInt(e.target.value))}
+                    placeholder="Default: 11111"
+                  />
+                  <p className="text-xs text-muted-foreground">Default port is 11111</p>
+                </div>
 
-            <div className="space-y-2">
-              <Label htmlFor="artery">Send to Artery</Label>
-              <Select
-                value={formValues.arterySendTo}
-                onValueChange={(value) => handleFormChange("arterySendTo", value)}
-              >
-                <SelectTrigger id="artery">
-                  <SelectValue placeholder="Select artery destination" />
-                </SelectTrigger>
-                <SelectContent>
-                  {arteries.map((artery) => (
-                    <SelectItem key={artery.id} value={artery.id}>
-                      {artery.name}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-              <p className="text-xs text-muted-foreground">Default is to send to all arteries</p>
-            </div>
+                <div className="space-y-2">
+                  <Label htmlFor="artery">Send to Artery</Label>
+                  <Select
+                    value={formValues.arterySendTo}
+                    onValueChange={(value) => handleFormChange("arterySendTo", value)}
+                  >
+                    <SelectTrigger id="artery">
+                      <SelectValue placeholder="Select artery destination" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {arteries.map((artery) => (
+                        <SelectItem key={artery.id} value={artery.id}>
+                          {artery.name}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                  <p className="text-xs text-muted-foreground">Default is to send to all arteries</p>
+                </div>
 
-            <div className="space-y-2">
-              <Label htmlFor="status">Status</Label>
-              <Select
-                value={formValues.status}
-                onValueChange={(value) => handleFormChange("status", value)}
-              >
-                <SelectTrigger id="status">
-                  <SelectValue placeholder="Select status" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="play">Play</SelectItem>
-                  <SelectItem value="pause">Pause</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
-
-            <div className="rounded-md bg-blue-50 p-4 mt-4">
-              <div className="flex">
-                <div className="ml-3">
-                  <h3 className="text-sm font-medium text-blue-800">Automatic settings</h3>
-                  <div className="mt-2 text-sm text-blue-700">
-                    <ul className="list-disc space-y-1 pl-5">
-                      <li>Protocol: UDP TS</li>
-                      <li>Advanced settings: Enabled</li>
-                      <li>AES Encryption: None</li>
-                      <li>IGMP Source Filtering: Enabled</li>
-                    </ul>
-                  </div>
+                <div className="space-y-2">
+                  <Label htmlFor="status">Status</Label>
+                  <Select
+                    value={formValues.status}
+                    onValueChange={(value) => handleFormChange("status", value as "play" | "pause")}
+                  >
+                    <SelectTrigger id="status">
+                      <SelectValue placeholder="Select status" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="play">Play</SelectItem>
+                      <SelectItem value="pause">Pause</SelectItem>
+                    </SelectContent>
+                  </Select>
                 </div>
               </div>
-            </div>
-          </div>
+            </TabsContent>
+            
+            <TabsContent value="advanced" className="space-y-4 pt-4">
+              <div className="grid gap-4">
+                <div className="space-y-2">
+                  <Label htmlFor="protocol">Protocol</Label>
+                  <Select
+                    value={formValues.protocol}
+                    onValueChange={(value) => handleFormChange("protocol", value)}
+                  >
+                    <SelectTrigger id="protocol">
+                      <SelectValue placeholder="Select protocol" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="UDP TS">UDP TS</SelectItem>
+                      <SelectItem value="Advanced">Advanced</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+                
+                <div className="space-y-2">
+                  <Label htmlFor="encryption">AES Encryption</Label>
+                  <Select
+                    value={formValues.encryption}
+                    onValueChange={(value) => handleFormChange("encryption", value)}
+                  >
+                    <SelectTrigger id="encryption">
+                      <SelectValue placeholder="Select encryption" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="None">None</SelectItem>
+                      <SelectItem value="AES-128">AES-128</SelectItem>
+                      <SelectItem value="AES-256">AES-256</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+                
+                <div className="flex items-center space-x-2">
+                  <Checkbox 
+                    id="igmp" 
+                    checked={formValues.igmpSourceFiltering}
+                    onCheckedChange={(checked) => handleFormChange("igmpSourceFiltering", checked)}
+                  />
+                  <Label htmlFor="igmp">Enable IGMP Source Filtering (SSM)</Label>
+                </div>
+                
+                <div className="flex items-center space-x-2">
+                  <Checkbox 
+                    id="advanced-settings" 
+                    checked={formValues.advanced}
+                    onCheckedChange={(checked) => handleFormChange("advanced", checked)}
+                  />
+                  <Label htmlFor="advanced-settings">Enable Advanced Settings</Label>
+                </div>
+              </div>
+            </TabsContent>
+          </Tabs>
 
           <DialogFooter>
             <Button variant="outline" onClick={() => setIsDialogOpen(false)}>Cancel</Button>
