@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
+import { ResponsiveDataTable, Column } from "@/components/data/ResponsiveDataTable";
 import { Badge } from "@/components/ui/badge";
 import {
   Dialog,
@@ -26,7 +27,8 @@ import {
 } from "@/components/ui/select";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { PlayCircle, PauseCircle, MoreVertical, Plus, Trash2, Pencil } from "lucide-react";
+import { Plus, MoreVertical, PlayCircle, PauseCircle, Trash2, Pencil } from "lucide-react";
+import { useForm } from "react-hook-form";
 
 // Type definition for a source
 type Source = {
@@ -82,9 +84,6 @@ export default function Sources() {
   const [sources, setSources] = useState<Source[]>(initialSources);
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [isEditMode, setIsEditMode] = useState(false);
-  const [searchQuery, setSearchQuery] = useState("");
-
-  // Form state for the new/edited source
   const [formValues, setFormValues] = useState<Source>({
     id: 0,
     name: "",
@@ -161,6 +160,106 @@ export default function Sources() {
     String(source.portNumber).includes(searchQuery)
   );
 
+  const [searchQuery, setSearchQuery] = useState("");
+
+  // Define table columns
+  const columns: Column<Source>[] = [
+    {
+      header: "Name",
+      accessorKey: "name",
+      cell: (source) => <span className="font-medium">{source.name}</span>,
+      sortable: true
+    },
+    {
+      header: "Encrypted Multicast",
+      accessorKey: "encryptedMulticastAddress",
+      cell: (source) => (
+        <code className="rounded bg-muted px-2 py-1">{source.encryptedMulticastAddress}</code>
+      ),
+      sortable: true
+    },
+    {
+      header: "Unencrypted Multicast",
+      accessorKey: "unencryptedMulticastAddress",
+      cell: (source) => (
+        <code className="rounded bg-muted px-2 py-1">{source.unencryptedMulticastAddress}</code>
+      ),
+      hideOnMobile: true,
+      sortable: true
+    },
+    {
+      header: "Port",
+      accessorKey: "portNumber",
+      cell: (source) => <span className="font-mono">{source.portNumber}</span>,
+      hideOnMobile: true,
+      sortable: true
+    },
+    {
+      header: "Artery",
+      accessorKey: "arterySendTo",
+      cell: (source) => (
+        <Badge variant="outline" className="capitalize">
+          {arteries.find(a => a.id === source.arterySendTo)?.name || source.arterySendTo}
+        </Badge>
+      ),
+      sortable: true
+    },
+    {
+      header: "Status",
+      accessorKey: "status",
+      cell: (source) => (
+        <Badge
+          variant="outline"
+          className={
+            source.status === 'play'
+              ? 'border-green-500 text-green-600 bg-green-50/50 dark:bg-green-900/10'
+              : 'border-amber-500 text-amber-600 bg-amber-50/50 dark:bg-amber-900/10'
+          }
+        >
+          {source.status === 'play' ? 'Play' : 'Pause'}
+        </Badge>
+      ),
+      sortable: true
+    },
+    {
+      header: "",
+      accessorKey: "id",
+      cell: (source) => (
+        <DropdownMenu>
+          <DropdownMenuTrigger asChild>
+            <Button variant="ghost" size="icon" className="h-8 w-8">
+              <MoreVertical className="h-4 w-4" />
+            </Button>
+          </DropdownMenuTrigger>
+          <DropdownMenuContent align="end">
+            <DropdownMenuItem onClick={() => handleEditSource(source)}>
+              <Pencil className="h-4 w-4 mr-2" />
+              Edit Source
+            </DropdownMenuItem>
+            <DropdownMenuItem 
+              onClick={() => handleToggleStatus(source.id)}
+            >
+              {source.status === "play"
+                ? <PauseCircle className="h-4 w-4 mr-2" />
+                : <PlayCircle className="h-4 w-4 mr-2" />
+              }
+              {source.status === "play" ? "Pause Source" : "Play Source"}
+            </DropdownMenuItem>
+            <DropdownMenuSeparator />
+            <DropdownMenuItem 
+              className="text-destructive"
+              onClick={() => handleDeleteSource(source.id)}
+            >
+              <Trash2 className="h-4 w-4 mr-2" />
+              Delete Source
+            </DropdownMenuItem>
+          </DropdownMenuContent>
+        </DropdownMenu>
+      ),
+      className: "w-[50px]"
+    }
+  ];
+
   return (
     <div className="space-y-6 animate-fade-in">
       <div className="flex justify-between items-center">
@@ -177,102 +276,16 @@ export default function Sources() {
           <CardDescription>Manage input connections for all arterial channels</CardDescription>
         </CardHeader>
         <CardContent>
-          {sources.length === 0 ? (
-            <div className="h-[300px] flex flex-col items-center justify-center border rounded-md">
-              <p className="text-muted-foreground mb-4">No sources configured yet</p>
-              <Button onClick={handleAddSource}>Add Your First Source</Button>
-            </div>
-          ) : (
-            <>
-              <div className="mb-4">
-                <Input
-                  placeholder="Search sources..."
-                  value={searchQuery}
-                  onChange={(e) => setSearchQuery(e.target.value)}
-                  className="max-w-sm"
-                />
-              </div>
-
-              <div className="border rounded-md overflow-hidden">
-                {/* Table Header */}
-                <div className="grid grid-cols-7 p-3 bg-gray-800 text-gray-300 font-medium">
-                  <div>Source Name <span className="text-xs opacity-60">↑</span></div>
-                  <div>Encrypted Multicast <span className="text-xs opacity-60">↓</span></div>
-                  <div>Unencrypted Multicast <span className="text-xs opacity-60">↓</span></div>
-                  <div>Port <span className="text-xs opacity-60">↓</span></div>
-                  <div>Artery Assignment <span className="text-xs opacity-60">↓</span></div>
-                  <div>Status <span className="text-xs opacity-60">↓</span></div>
-                  <div></div>
-                </div>
-
-                {/* Table Rows */}
-                {filteredSources.length > 0 ? (
-                  filteredSources.map((source, index) => (
-                    <div
-                      key={source.id}
-                      className={`grid grid-cols-7 p-3 hover:bg-gray-700 ${index % 2 === 0 ? 'bg-gray-900' : 'bg-gray-800'}`}
-                    >
-                      <div className="font-medium text-white">{source.name}</div>
-                      <div className="font-mono text-sm text-gray-300">{source.encryptedMulticastAddress}</div>
-                      <div className="font-mono text-sm text-gray-300">{source.unencryptedMulticastAddress}</div>
-                      <div className="text-gray-300">{source.portNumber}</div>
-                      <div>
-                        <Badge
-                          variant="default"
-                          className="bg-blue-600 hover:bg-blue-600 text-white border-none"
-                        >
-                          {arteries.find(a => a.id === source.arterySendTo)?.name || source.arterySendTo}
-                        </Badge>
-                      </div>
-                      <div>
-                        <Badge
-                          variant="default"
-                          className={
-                            source.status === 'play'
-                              ? 'bg-green-600 hover:bg-green-600 text-white border-none'
-                              : 'bg-amber-600 hover:bg-amber-600 text-white border-none'
-                          }
-                        >
-                          {source.status === 'play' ? 'Play' : 'Pause'}
-                        </Badge>
-                      </div>
-                      <div className="text-right">
-                        <DropdownMenu>
-                          <DropdownMenuTrigger asChild>
-                            <Button variant="ghost" size="icon" className="h-8 w-8 text-gray-300 hover:text-white hover:bg-gray-700">
-                              <MoreVertical className="h-4 w-4" />
-                            </Button>
-                          </DropdownMenuTrigger>
-                          <DropdownMenuContent align="end">
-                            <DropdownMenuItem onClick={() => handleEditSource(source)}>
-                              <Pencil className="h-4 w-4 mr-2" />
-                              Edit Source
-                            </DropdownMenuItem>
-                            <DropdownMenuItem onClick={() => handleToggleStatus(source.id)}>
-                              {source.status === "play"
-                                ? <PauseCircle className="h-4 w-4 mr-2" />
-                                : <PlayCircle className="h-4 w-4 mr-2" />
-                              }
-                              {source.status === "play" ? "Pause Source" : "Play Source"}
-                            </DropdownMenuItem>
-                            <DropdownMenuSeparator />
-                            <DropdownMenuItem className="text-destructive" onClick={() => handleDeleteSource(source.id)}>
-                              <Trash2 className="h-4 w-4 mr-2" />
-                              Delete Source
-                            </DropdownMenuItem>
-                          </DropdownMenuContent>
-                        </DropdownMenu>
-                      </div>
-                    </div>
-                  ))
-                ) : (
-                  <div className="p-8 text-center text-gray-300 bg-gray-900">
-                    No sources found matching your search
-                  </div>
-                )}
-              </div>
-            </>
-          )}
+          <ResponsiveDataTable
+            data={sources}
+            columns={columns}
+            keyField="id"
+            searchable={true}
+            searchPlaceholder="Search sources..."
+            pagination={true}
+            pageSize={8}
+            emptyMessage="No sources configured yet"
+          />
         </CardContent>
       </Card>
 
