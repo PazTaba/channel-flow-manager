@@ -4,11 +4,9 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Button } from "@/components/ui/button";
 import { ResponsiveDataTable, Column } from "@/components/data/ResponsiveDataTable";
 import { Badge } from "@/components/ui/badge";
-import { useLanguage } from "@/hooks/useLanguage";
-import { translations } from "@/i18n/translations";
-import { Source } from "@/types/source";
 import { useToast } from "@/hooks/use-toast";
 import { Plus } from "lucide-react";
+import { Source } from "@/types/source";
 
 // Initial mock data for sources
 const initialSources: Source[] = [
@@ -29,19 +27,17 @@ const initialSources: Source[] = [
 export default function Sources() {
   const { toast } = useToast();
   const [sources, setSources] = useState<Source[]>(initialSources);
-  const { language } = useLanguage();
-  const t = translations[language].sources;
-
+  
   // Define table columns with simplified data
   const columns: Column<Source>[] = [
     {
-      header: t.name,
+      header: "Name",
       accessorKey: "name",
       cell: (source) => <span className="font-medium">{source.name}</span>,
       sortable: true
     },
     {
-      header: t.address,
+      header: "IP Address",
       accessorKey: "encryptedMulticastAddress",
       cell: (source) => (
         <code className="rounded bg-muted px-2 py-1">{source.encryptedMulticastAddress}</code>
@@ -49,7 +45,7 @@ export default function Sources() {
       sortable: true
     },
     {
-      header: t.status,
+      header: "Status",
       accessorKey: "status",
       cell: (source) => (
         <Badge
@@ -60,7 +56,7 @@ export default function Sources() {
               : 'border-amber-500 text-amber-600 bg-amber-50/50 dark:bg-amber-900/10'
           }
         >
-          {source.status === 'play' ? t.play : t.pause}
+          {source.status === 'play' ? 'Active' : 'Paused'}
         </Badge>
       ),
       sortable: true
@@ -70,21 +66,22 @@ export default function Sources() {
   return (
     <div className="space-y-6 animate-fade-in">
       <div className="flex justify-between items-center">
-        <h1 className="text-3xl font-bold tracking-tight" style={{ direction: language === 'he' ? 'rtl' : 'ltr' }}>
-          {t.title}
-        </h1>
+        <h1 className="text-3xl font-bold tracking-tight">Sources</h1>
         <div className="flex gap-2">
           <Button onClick={() => {}}>
             <Plus className="h-4 w-4 mr-2" />
-            {t.addSource}
+            Add Source
           </Button>
         </div>
       </div>
 
       <Card>
         <CardHeader>
-          <CardTitle>{t.title}</CardTitle>
-          <CardDescription>Manage input connections for all arterial channels</CardDescription>
+          <CardTitle>Input Sources</CardTitle>
+          <CardDescription>
+            Manage unified input sources that feed multiple servers and arteries. 
+            Each source can be distributed to many destinations through different channels.
+          </CardDescription>
         </CardHeader>
         <CardContent>
           <ResponsiveDataTable
