@@ -1,3 +1,4 @@
+import { useState } from "react";
 import {
   Dialog,
   DialogContent,
@@ -6,10 +7,27 @@ import {
   DialogTrigger,
 } from "@/components/ui/dialog";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Badge } from "@/components/ui/badge";
-import { CircleCheck, CircleX } from "lucide-react";
+import { Badge as DefaultBadge } from "@/components/ui/badge";
+import { CircleCheck, CircleX, Activity, Cpu, Network } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { ChannelCircle } from "./ChannelCircle";
+import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+
+function Badge({ mode }: { mode: string | undefined }) {
+  const colorClass =
+    mode === "active"
+      ? "bg-green-500 text-white"
+      : mode === "passive"
+        ? "bg-yellow-400 text-black"
+        : "bg-red-500 text-white";
+
+  return (
+    <div className={cn("px-2 py-0.5 text-xs rounded-full font-semibold", colorClass)}>
+      {mode || "unknown"}
+    </div>
+  );
+}
 
 interface ChannelDetailsDialogProps {
   channel: {
@@ -20,9 +38,8 @@ interface ChannelDetailsDialogProps {
     ram: number;
     bitrateIn: number;
     bitrateOut: number;
-    // Additional channel configuration data
     broadcastIP?: string;
-    mode?: "active" | "passive";
+    mode?: "active" | "passive" | string;
     sources?: Array<{
       name: string;
       ip: string;
@@ -37,9 +54,11 @@ interface ChannelDetailsDialogProps {
 }
 
 export function ChannelDetailsDialog({ channel }: ChannelDetailsDialogProps) {
+  const [selectedLink, setSelectedLink] = useState<"link1" | "link2" | null>(null);
+
   const statusColor = (status: "online" | "offline") =>
     status === "online" ? "text-green-500" : "text-red-500";
-  
+
   const statusIcon = (status: "online" | "offline") =>
     status === "online" ? (
       <CircleCheck className={cn("w-4 h-4", statusColor(status))} />
@@ -51,8 +70,6 @@ export function ChannelDetailsDialog({ channel }: ChannelDetailsDialogProps) {
     <Dialog>
       <DialogTrigger asChild>
         <div className="cursor-pointer">
-          {/* Render the existing ChannelCircle component */}
-          {/* We're keeping the existing circle as the trigger */}
           <ChannelCircle
             name={channel.name}
             channelLink1Status={channel.channelLink1Status}
@@ -66,118 +83,232 @@ export function ChannelDetailsDialog({ channel }: ChannelDetailsDialogProps) {
       </DialogTrigger>
       <DialogContent className="max-w-2xl">
         <DialogHeader>
-          <DialogTitle className="flex items-center gap-2">
+          <DialogTitle className="flex items-center gap-2 text-xl">
+            <Activity className="w-5 h-5 mr-1" />
             Channel: {channel.name}
-            <Badge variant={channel.mode === "active" ? "default" : "secondary"}>
-              {channel.mode || "active"}
-            </Badge>
+            <Badge mode={channel.mode} />
           </DialogTitle>
         </DialogHeader>
 
-        <Tabs defaultValue="overview" className="mt-4">
-          <TabsList>
-            <TabsTrigger value="overview">Overview</TabsTrigger>
-            <TabsTrigger value="links">Links Status</TabsTrigger>
-            <TabsTrigger value="sources">Sources</TabsTrigger>
-            <TabsTrigger value="destinations">Destinations</TabsTrigger>
-          </TabsList>
-
-          <TabsContent value="overview" className="space-y-4">
-            <div className="grid grid-cols-2 gap-4">
-              <div className="p-4 rounded-lg border">
-                <h3 className="text-sm font-medium mb-2">System Usage</h3>
-                <div className="space-y-2">
-                  <div className="flex justify-between">
-                    <span className="text-sm text-muted-foreground">CPU:</span>
-                    <span className="font-medium">{channel.cpu}%</span>
+        {/* Overview Card with improved styling */}
+        <div className="mt-4">
+          <Card className="bg-gradient-to-br from-gray-50 to-gray-100 dark:from-gray-900 dark:to-gray-800 border-none shadow-md">
+            <CardHeader className="pb-2">
+              <CardTitle className="text-sm font-medium">Channel Overview</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="grid grid-cols-2 gap-4">
+                <div className="p-3 rounded-lg bg-white dark:bg-gray-800 border shadow-sm">
+                  <div className="flex items-center gap-2 mb-2">
+                    <Cpu className="w-4 h-4 text-muted-foreground" />
+                    <h3 className="text-sm font-medium">System Usage</h3>
                   </div>
-                  <div className="flex justify-between">
-                    <span className="text-sm text-muted-foreground">RAM:</span>
-                    <span className="font-medium">{channel.ram}%</span>
+                  <div className="space-y-2">
+                    <div className="flex justify-between items-center">
+                      <span className="text-sm text-muted-foreground">CPU:</span>
+                      <div className="w-24 bg-gray-200 dark:bg-gray-700 rounded-full h-2">
+                        <div
+                          className={cn(
+                            "h-2 rounded-full",
+                            channel.cpu > 80 ? "bg-red-500" : channel.cpu > 50 ? "bg-yellow-400" : "bg-green-500"
+                          )}
+                          style={{ width: `${channel.cpu}%` }}
+                        ></div>
+                      </div>
+                      <span className="font-medium ml-2 text-sm">{channel.cpu}%</span>
+                    </div>
+                    <div className="flex justify-between items-center">
+                      <span className="text-sm text-muted-foreground">RAM:</span>
+                      <div className="w-24 bg-gray-200 dark:bg-gray-700 rounded-full h-2">
+                        <div
+                          className={cn(
+                            "h-2 rounded-full",
+                            channel.ram > 80 ? "bg-red-500" : channel.ram > 50 ? "bg-yellow-400" : "bg-green-500"
+                          )}
+                          style={{ width: `${channel.ram}%` }}
+                        ></div>
+                      </div>
+                      <span className="font-medium ml-2 text-sm">{channel.ram}%</span>
+                    </div>
+                  </div>
+                </div>
+                <div className="p-3 rounded-lg bg-white dark:bg-gray-800 border shadow-sm">
+                  <div className="flex items-center gap-2 mb-2">
+                    <Network className="w-4 h-4 text-muted-foreground" />
+                    <h3 className="text-sm font-medium">Network Traffic</h3>
+                  </div>
+                  <div className="space-y-2">
+                    <div className="flex justify-between">
+                      <span className="text-sm text-muted-foreground">In:</span>
+                      <span className="font-medium text-sm">{channel.bitrateIn} Mbps</span>
+                    </div>
+                    <div className="flex justify-between">
+                      <span className="text-sm text-muted-foreground">Out:</span>
+                      <span className="font-medium text-sm">{channel.bitrateOut} Mbps</span>
+                    </div>
                   </div>
                 </div>
               </div>
-              <div className="p-4 rounded-lg border">
-                <h3 className="text-sm font-medium mb-2">Network Traffic</h3>
-                <div className="space-y-2">
-                  <div className="flex justify-between">
-                    <span className="text-sm text-muted-foreground">In:</span>
-                    <span className="font-medium">{channel.bitrateIn} Mbps</span>
+              {channel.broadcastIP && (
+                <div className="mt-4 p-3 rounded-lg bg-white dark:bg-gray-800 border shadow-sm">
+                  <div className="flex items-center gap-2 mb-2">
+                    <h3 className="text-sm font-medium">IP Address</h3>
                   </div>
-                  <div className="flex justify-between">
-                    <span className="text-sm text-muted-foreground">Out:</span>
-                    <span className="font-medium">{channel.bitrateOut} Mbps</span>
-                  </div>
+                  <span className="font-mono text-sm">{channel.broadcastIP}</span>
                 </div>
-              </div>
-            </div>
-            {channel.broadcastIP && (
-              <div className="p-4 rounded-lg border">
-                <h3 className="text-sm font-medium mb-2">Broadcast Address</h3>
-                <span className="font-mono">{channel.broadcastIP}</span>
-              </div>
-            )}
-          </TabsContent>
+              )}
+            </CardContent>
+          </Card>
+        </div>
 
-          <TabsContent value="links" className="space-y-4">
-            <div className="grid grid-cols-2 gap-4">
-              <div className="p-4 rounded-lg border">
-                <h3 className="text-sm font-medium mb-2">Link 1</h3>
+        {/* Step 1: Link Selection */}
+        {selectedLink === null ? (
+          <div className="mt-4 grid grid-cols-2 gap-4">
+            <Card
+              onClick={() => setSelectedLink("link1")}
+              className={cn(
+                "cursor-pointer transition-all hover:shadow-md",
+                channel.channelLink1Status === "online"
+                  ? "hover:border-green-400"
+                  : "hover:border-red-400"
+              )}
+            >
+              <CardContent className="flex flex-col items-center justify-center gap-2 py-6">
+                <span className="text-sm font-medium">Channel Link 1</span>
                 <div className="flex items-center gap-2">
                   {statusIcon(channel.channelLink1Status)}
-                  <span className="capitalize">{channel.channelLink1Status}</span>
+                  <span className={cn("capitalize text-sm", statusColor(channel.channelLink1Status))}>
+                    {channel.channelLink1Status}
+                  </span>
                 </div>
-              </div>
-              <div className="p-4 rounded-lg border">
-                <h3 className="text-sm font-medium mb-2">Link 2</h3>
+              </CardContent>
+            </Card>
+            <Card
+              onClick={() => setSelectedLink("link2")}
+              className={cn(
+                "cursor-pointer transition-all hover:shadow-md",
+                channel.channelLink2Status === "online"
+                  ? "hover:border-green-400"
+                  : "hover:border-red-400"
+              )}
+            >
+              <CardContent className="flex flex-col items-center justify-center gap-2 py-6">
+                <span className="text-sm font-medium">Channel Link 2</span>
                 <div className="flex items-center gap-2">
                   {statusIcon(channel.channelLink2Status)}
-                  <span className="capitalize">{channel.channelLink2Status}</span>
+                  <span className={cn("capitalize text-sm", statusColor(channel.channelLink2Status))}>
+                    {channel.channelLink2Status}
+                  </span>
                 </div>
-              </div>
-            </div>
-          </TabsContent>
+              </CardContent>
+            </Card>
+          </div>
+        ) : (
+          <>
+            <Tabs defaultValue="links" className="mt-4">
+              <TabsList className="w-full grid grid-cols-3">
+                <TabsTrigger value="links">Links Status</TabsTrigger>
+                <TabsTrigger value="sources">Sources</TabsTrigger>
+                <TabsTrigger value="destinations">Destinations</TabsTrigger>
+              </TabsList>
 
-          <TabsContent value="sources">
-            <div className="space-y-4">
-              {channel.sources?.map((source, index) => (
-                <div key={index} className="p-4 rounded-lg border">
-                  <div className="flex justify-between items-start">
-                    <div>
-                      <h3 className="text-sm font-medium">{source.name}</h3>
-                      <p className="text-sm text-muted-foreground font-mono">
-                        {source.ip}
-                      </p>
-                    </div>
-                    <Badge variant={source.status === "enabled" ? "default" : "secondary"}>
-                      {source.status}
-                    </Badge>
-                  </div>
+              <TabsContent value="links" className="space-y-4 mt-4">
+                <div className="grid grid-cols-2 gap-4">
+                  <Card className={cn(
+                    "border-l-4",
+                    channel.channelLink1Status === "online" ? "border-l-green-500" : "border-l-red-500"
+                  )}>
+                    <CardHeader className="py-3">
+                      <CardTitle className="text-sm font-medium">Link 1</CardTitle>
+                    </CardHeader>
+                    <CardContent className="py-2">
+                      <div className="flex items-center gap-2">
+                        {statusIcon(channel.channelLink1Status)}
+                        <span className={cn("capitalize", statusColor(channel.channelLink1Status))}>
+                          {channel.channelLink1Status}
+                        </span>
+                      </div>
+                    </CardContent>
+                  </Card>
+                  <Card className={cn(
+                    "border-l-4",
+                    channel.channelLink2Status === "online" ? "border-l-green-500" : "border-l-red-500"
+                  )}>
+                    <CardHeader className="py-3">
+                      <CardTitle className="text-sm font-medium">Link 2</CardTitle>
+                    </CardHeader>
+                    <CardContent className="py-2">
+                      <div className="flex items-center gap-2">
+                        {statusIcon(channel.channelLink2Status)}
+                        <span className={cn("capitalize", statusColor(channel.channelLink2Status))}>
+                          {channel.channelLink2Status}
+                        </span>
+                      </div>
+                    </CardContent>
+                  </Card>
                 </div>
-              ))}
-            </div>
-          </TabsContent>
+              </TabsContent>
 
-          <TabsContent value="destinations">
-            <div className="space-y-4">
-              {channel.destinations?.map((dest, index) => (
-                <div key={index} className="p-4 rounded-lg border">
-                  <div className="flex justify-between items-start">
-                    <div>
-                      <h3 className="text-sm font-medium">{dest.name}</h3>
-                      <p className="text-sm text-muted-foreground font-mono">
-                        {dest.ip}
-                      </p>
-                    </div>
-                    <Badge variant={dest.type === "primary" ? "default" : "secondary"}>
-                      {dest.type}
-                    </Badge>
-                  </div>
+              <TabsContent value="sources" className="mt-4">
+                <div className="space-y-3">
+                  {channel.sources?.map((source, index) => (
+                    <Card key={index} className={cn(
+                      "border-l-4",
+                      source.status === "enabled" ? "border-l-blue-500" : "border-l-gray-400"
+                    )}>
+                      <CardContent className="py-4">
+                        <div className="flex justify-between items-center">
+                          <div>
+                            <h3 className="text-sm font-medium">{source.name}</h3>
+                            <p className="text-xs text-muted-foreground font-mono mt-1">
+                              {source.ip}
+                            </p>
+                          </div>
+                          <DefaultBadge variant={source.status === "enabled" ? "default" : "secondary"}>
+                            {source.status}
+                          </DefaultBadge>
+                        </div>
+                      </CardContent>
+                    </Card>
+                  ))}
                 </div>
-              ))}
-            </div>
-          </TabsContent>
-        </Tabs>
+              </TabsContent>
+
+              <TabsContent value="destinations" className="mt-4">
+                <div className="space-y-3">
+                  {channel.destinations?.map((dest, index) => (
+                    <Card key={index} className={cn(
+                      "border-l-4",
+                      dest.type === "primary" ? "border-l-purple-500" : "border-l-gray-400"
+                    )}>
+                      <CardContent className="py-4">
+                        <div className="flex justify-between items-center">
+                          <div>
+                            <h3 className="text-sm font-medium">{dest.name}</h3>
+                            <p className="text-xs text-muted-foreground font-mono mt-1">
+                              {dest.ip}
+                            </p>
+                          </div>
+                          <DefaultBadge variant={dest.type === "primary" ? "default" : "secondary"}>
+                            {dest.type}
+                          </DefaultBadge>
+                        </div>
+                      </CardContent>
+                    </Card>
+                  ))}
+                </div>
+              </TabsContent>
+            </Tabs>
+            <Button
+              size="sm"
+              variant="outline"
+              className="mt-4"
+              onClick={() => setSelectedLink(null)}
+            >
+              ← Back to link selection
+            </Button>
+          </>
+        )}
       </DialogContent>
     </Dialog>
   );

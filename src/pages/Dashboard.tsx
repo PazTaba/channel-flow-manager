@@ -12,16 +12,11 @@ import type { Channel } from "@/components/dashboard/DashboardChannelsTable";
 import { useForm } from "react-hook-form";
 
 import { useState } from "react";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { ResponsiveDataTable, Column } from "@/components/data/ResponsiveDataTable";
+
 import { Badge } from "@/components/ui/badge";
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
+
 import {
   Select,
   SelectContent,
@@ -66,7 +61,7 @@ const arteryChannels = [
   {
     name: "Artery 1",
     channelLink1Status: "online" as "online" | "offline",
-    channelLink2Status: "online" as "online" | "offline",
+    channelLink2Status: "offline" as "online" | "offline",
     cpu: 47,
     ram: 61,
     bitrateIn: 125,
