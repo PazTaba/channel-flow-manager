@@ -1,43 +1,65 @@
-import { Toaster } from "@/components/ui/toaster";
-import { Toaster as Sonner } from "@/components/ui/sonner";
-import { TooltipProvider } from "@/components/ui/tooltip";
-import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { BrowserRouter, Routes, Route } from "react-router-dom";
-import { ThemeProvider } from "./context/ThemeProvider";
-import { Layout } from "./components/layout/Layout";
-import Dashboard from "./pages/Dashboard";
-import Channels from "./pages/Channels";
-import Sources from "./pages/Sources";
-import Destinations from "./pages/Destinations";
-import Settings from "./pages/Settings";
-import Users from "./pages/Users";
-import NotFound from "./pages/NotFound";
+// src/App.tsx
+import { Routes, Route, Navigate } from "react-router-dom";
+import { AppProvider } from "./providers/AppProvider";
+import { Layout } from "@/components/layout/Layout";
+import { ProtectedRoute } from "@/components/auth/ProtectedRoute";
 
-const queryClient = new QueryClient();
+// Pages
+import Dashboard from "@/pages/Dashboard";
+import Channels from "@/pages/Channels";
+import Sources from "@/pages/Sources";
+import Destinations from "@/pages/Destinations";
+import Settings from "@/pages/Settings";
+import Users from "@/pages/Users";
+import NotFound from "@/pages/NotFound";
+import Login from "@/pages/Login";
+import Unauthorized from "@/pages/Unauthorized";
 
+/**
+ * Main App component that defines the application routes
+ */
 const App = () => (
-  <QueryClientProvider client={queryClient}>
-    <ThemeProvider defaultTheme="system">
-      <TooltipProvider>
-        <Toaster />
-        <Sonner />
-        <BrowserRouter>
+  <AppProvider>
+    <Routes>
+      {/* Public routes */}
+      <Route path="/login" element={<Login />} />
+      <Route path="/unauthorized" element={<Unauthorized />} />
+      
+      {/* Protected routes within Layout */}
+      <Route path="/" element={
+        <ProtectedRoute>
           <Layout>
             <Routes>
-              <Route path="/" element={<Dashboard />} />
-              <Route path="/channels" element={<Channels />} />
-              <Route path="/sources" element={<Sources />} />
-              <Route path="/destinations" element={<Destinations />} />
-              <Route path="/settings" element={<Settings />} />
-              <Route path="/users" element={<Users />} />
-              {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
+              <Route index element={<Dashboard />} />
+              <Route path="channels" element={<Channels />} />
+              <Route path="sources" element={<Sources />} />
+              <Route path="destinations" element={<Destinations />} />
+              
+              {/* Settings - accessible to admins and operators */}
+              <Route path="settings" element={
+                <ProtectedRoute allowedRoles={['admin', 'operator']}>
+                  <Settings />
+                </ProtectedRoute>
+              } />
+              
+              {/* User management - admin only */}
+              <Route path="users" element={
+                <ProtectedRoute allowedRoles={['admin']}>
+                  <Users />
+                </ProtectedRoute>
+              } />
+              
+              {/* Catch-all route for 404 */}
               <Route path="*" element={<NotFound />} />
             </Routes>
           </Layout>
-        </BrowserRouter>
-      </TooltipProvider>
-    </ThemeProvider>
-  </QueryClientProvider>
+        </ProtectedRoute>
+      } />
+      
+      {/* Redirect any other path to home */}
+      <Route path="*" element={<Navigate to="/" replace />} />
+    </Routes>
+  </AppProvider>
 );
 
 export default App;
