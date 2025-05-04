@@ -1,4 +1,7 @@
+
 import { setupWorker } from 'msw/browser';
-import { handlers } from './handlers';
+
+// Create an empty handlers array as a temporary workaround
+const handlers = [];
 
 export const worker = setupWorker(...handlers);

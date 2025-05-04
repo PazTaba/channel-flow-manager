@@ -1,12 +1,10 @@
 import { AlertsComponent } from "@/components/alerts/AlertsComponent";
 import { ChannelDetailsDialog } from "@/components/dashboard/ChannelDetailsDialog";
 import { DashboardStatusCards } from "@/components/dashboard/DashboardStatusCards";
-import { DashboardChannelsTable } from "@/components/dashboard/DashboardChannelsTable";
+import { DashboardChannelsTable, Channel } from "@/components/dashboard/DashboardChannelsTable";
 import { BandwidthUsageGraph } from "@/components/dashboard/BandwidthUsageGraph";
 import { QuickActions } from "@/components/dashboard/QuickActions";
 import { TopChannels } from "@/components/dashboard/TopChannels";
-
-import type { Channel } from "@/components/dashboard/DashboardChannelsTable";
 
 import { useForm } from "react-hook-form";
 
@@ -30,7 +28,6 @@ import {
   DialogDescription,
   DialogHeader,
   DialogTitle,
-  DialogTrigger,
   DialogFooter,
 } from "@/components/ui/dialog";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -929,62 +926,4 @@ export default function Dashboard() {
             <button
               onClick={() => {
                 const container = document.getElementById("channel-scroll-container");
-                const cards = container?.querySelectorAll("div > [role='dialog'], div > div");
-                if (container && cards?.length) {
-                  // Find width of 5 cards + spacing
-                  const cardWidth = (cards[0] as HTMLElement).offsetWidth;
-                  const cardSpacing = 16; // This matches your space-x-4 (4 × 4px = 16px)
-                  const scrollAmount = (cardWidth + cardSpacing) * 5;
-                  container.scrollBy({ left: scrollAmount, behavior: "smooth" });
-                }
-              }}
-              className="absolute right-0 top-1/2 transform -translate-y-1/2 bg-gray-200 shadow-md rounded-full p-2 z-10"
-            >
-              <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 text-black" viewBox="0 0 20 20" fill="currentColor">
-                <path fillRule="evenodd" d="M7.293 14.707a1 1 0 010-1.414L10.586 10 7.293 6.707a1 1 0 011.414-1.414l4 4a1 1 0 010 1.414l-4 4a1 1 0 01-1.414 0z" clipRule="evenodd" />
-              </svg>
-            </button>
-
-            {/* Scroll left button */}
-            <button
-              onClick={() => {
-                const container = document.getElementById("channel-scroll-container");
-                const cards = container?.querySelectorAll("div > [role='dialog'], div > div");
-                if (container && cards?.length) {
-                  // Find width of 5 cards + spacing
-                  const cardWidth = (cards[0] as HTMLElement).offsetWidth;
-                  const cardSpacing = 16; // This matches your space-x-4 (4 × 4px = 16px)
-                  const scrollAmount = (cardWidth + cardSpacing) * 5;
-                  container.scrollBy({ left: -scrollAmount, behavior: "smooth" });
-                }
-              }}
-              className="absolute left-0 top-1/2 transform -translate-y-1/2 bg-gray-200 shadow-md rounded-full p-2 z-10"
-            >
-              <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 text-black" viewBox="0 0 20 20" fill="currentColor">
-                <path fillRule="evenodd" d="M12.707 5.293a1 1 0 010 1.414L9.414 10l3.293 3.293a1 1 0 01-1.414 1.414l-4-4a1 1 0 010-1.414l4-4a1 1 0 011.414 0z" clipRule="evenodd" />
-              </svg>
-            </button>
-          </div>
-        </CardContent>
-      </Card>
-
-      <DashboardChannelsTable
-        data={channelsData}
-        onViewChannel={handleViewChannel}
-      />
-
-      <BandwidthUsageGraph />
-
-      <div className="grid gap-4 md:grid-cols-2 grid-cols-1">
-        <TopChannels channels={topChannels} />
-        <AlertsComponent title="System Alerts" />
-      </div>
-
-      <QuickActions />
-
-      {selectedChannel && (
-        <ChannelDetailsDialog channel={mapChannelToDialogFormat(selectedChannel)} />
-      )}
-    </div>
-  );
-}
+                const cards = container?.querySelectorAll

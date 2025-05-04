@@ -402,7 +402,7 @@ export default function Arteries() {
     },
     {
       header: "Primary Destination",
-      accessorKey: "primaryChannel.destination",
+      accessorKey: "primaryChannel",
       cell: (artery) => (
         <div className="flex flex-col">
           <span>{artery.primaryChannel.destination}</span>
@@ -418,7 +418,7 @@ export default function Arteries() {
     },
     {
       header: "Backup Destination",
-      accessorKey: "backupChannel.destination",
+      accessorKey: "backupChannel",
       cell: (artery) => (
         <div className="flex flex-col">
           <span>{artery.backupChannel.destination}</span>
