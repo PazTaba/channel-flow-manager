@@ -6,41 +6,63 @@ import { ResponsiveDataTable, Column } from "@/components/data/ResponsiveDataTab
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
-import { MoreVertical } from "lucide-react";
+import { MoreVertical, ArrowRightLeft } from "lucide-react";
+import { ArteryDetailsDialog } from "./ArteryDetailsDialog";
 
-export interface Channel {
+export interface Artery {
   id: number;
   name: string;
   source: string;
-  destinationId:number;
-  sourceId :number;
-  destination: string;
-  bandwidth: string;
+  sourceId: number;
   status: "active" | "standby" | "fault";
   broadcastIp: string;
   mode: "active" | "passive";
   online: boolean;
-  primaryDestinationIp?: string;
-  secondaryDestinationIp?: string;
   encryptionEnabled?: boolean;
   protocol?: string;
   bitrateIn?: number;
   bitrateOut?: number;
+  primaryChannel: {
+    id: number;
+    destinationId: number;
+    destination: string;
+    status: "online" | "offline";
+    isActive: boolean;
+  };
+  backupChannel: {
+    id: number;
+    destinationId: number;
+    destination: string;
+    status: "online" | "offline";
+    isActive: boolean;
+  };
 }
 
-interface DashboardChannelsTableProps {
-  data: Channel[];
-  onViewChannel: (channel: Channel) => void;
+interface DashboardArteriesTableProps {
+  data: Artery[];
+  onViewArtery: (artery: Artery) => void;
+  onSwitchChannel?: (arteryId: number, useBackup: boolean) => void;
 }
 
-export function DashboardChannelsTable({ data, onViewChannel }: DashboardChannelsTableProps) {
+export function DashboardArteriesTable({ 
+  data, 
+  onViewArtery, 
+  onSwitchChannel 
+}: DashboardArteriesTableProps) {
   const [statusFilter, setStatusFilter] = useState<"all" | "active" | "standby" | "fault">("all");
+  const [selectedArtery, setSelectedArtery] = useState<Artery | null>(null);
 
-  const columns: Column<Channel>[] = [
+  const handleSwitchChannel = (artery: Artery) => {
+    if (onSwitchChannel) {
+      onSwitchChannel(artery.id, artery.primaryChannel.isActive);
+    }
+  };
+
+  const columns: Column<Artery>[] = [
     {
       header: "Name",
       accessorKey: "name",
-      cell: (channel) => <span className="font-medium">{channel.name}</span>,
+      cell: (artery) => <span className="font-medium">{artery.name}</span>,
       sortable: true
     },
     {
@@ -50,82 +72,84 @@ export function DashboardChannelsTable({ data, onViewChannel }: DashboardChannel
       sortable: true
     },
     {
-      header: "Destination",
-      accessorKey: "destination",
-      hideOnMobile: true,
-      sortable: true
-    },
-    {
-      header: "Broadcast IP",
-      accessorKey: "broadcastIp",
-      hideOnMobile: true,
-      sortable: true
-    },
-    {
-      header: "Mode",
-      accessorKey: "mode",
-      cell: (channel) => (
-        <Badge
-          variant="outline"
-          className={
-            channel.mode === 'active' ? 'border-green-500 text-green-600 bg-green-50/50 dark:bg-green-900/10' :
-            'border-amber-500 text-amber-600 bg-amber-50/50 dark:bg-amber-900/10'
-          }
-        >
-          {channel.mode === 'active' ? 'Active' : 'Passive'}
-        </Badge>
+      header: "Primary Destination",
+      accessorKey: "primaryChannel.destination",
+      cell: (artery) => (
+        <div className="flex flex-col">
+          <span>{artery.primaryChannel.destination}</span>
+          {artery.primaryChannel.isActive && (
+            <Badge variant="outline" className="mt-1 w-fit border-blue-500 text-blue-600 bg-blue-50/50 dark:bg-blue-900/10">
+              Active
+            </Badge>
+          )}
+        </div>
       ),
+      hideOnMobile: true,
       sortable: true
     },
     {
       header: "Status",
       accessorKey: "status",
-      cell: (channel) => (
+      cell: (artery) => (
         <Badge
           variant="outline"
           className={
-            channel.status === 'active' ? 'border-status-active text-status-active bg-green-50/50 dark:bg-green-900/10' :
-            channel.status === 'standby' ? 'border-status-standby text-status-standby bg-amber-50/50 dark:bg-amber-900/10' :
+            artery.status === 'active' ? 'border-status-active text-status-active bg-green-50/50 dark:bg-green-900/10' :
+            artery.status === 'standby' ? 'border-status-standby text-status-standby bg-amber-50/50 dark:bg-amber-900/10' :
             'border-status-fault text-status-fault bg-red-50/50 dark:bg-red-900/10'
           }
         >
-          {channel.status === 'active' ? 'Active' :
-           channel.status === 'standby' ? 'Standby' : 'Fault'}
+          {artery.status === 'active' ? 'Active' :
+           artery.status === 'standby' ? 'Standby' : 'Fault'}
         </Badge>
       ),
       sortable: true
     },
     {
-      header: "",
+      header: "Actions",
       accessorKey: "id",
-      cell: (channel) => (
-        <DropdownMenu>
-          <DropdownMenuTrigger asChild>
-            <Button variant="ghost" size="icon" className="h-8 w-8">
-              <MoreVertical className="h-4 w-4" />
-            </Button>
-          </DropdownMenuTrigger>
-          <DropdownMenuContent align="end">
-            <DropdownMenuItem onClick={() => onViewChannel(channel)}>View Details</DropdownMenuItem>
-            <DropdownMenuItem>Edit Channel</DropdownMenuItem>
-            <DropdownMenuItem>Manage Bandwidth</DropdownMenuItem>
-            <DropdownMenuItem className="text-destructive">Delete</DropdownMenuItem>
-          </DropdownMenuContent>
-        </DropdownMenu>
+      cell: (artery) => (
+        <div className="flex items-center">
+          <Button
+            size="sm"
+            variant="outline"
+            className="h-8 mr-2"
+            onClick={() => handleSwitchChannel(artery)}
+          >
+            <ArrowRightLeft className="h-3.5 w-3.5 mr-1" />
+            Switch
+          </Button>
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <Button variant="ghost" size="icon" className="h-8 w-8">
+                <MoreVertical className="h-4 w-4" />
+              </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="end">
+              <DropdownMenuItem onClick={() => {
+                setSelectedArtery(artery);
+                onViewArtery(artery);
+              }}>View Details</DropdownMenuItem>
+              <DropdownMenuItem>Edit Artery</DropdownMenuItem>
+              <DropdownMenuItem>Manage Bandwidth</DropdownMenuItem>
+              <DropdownMenuItem className="text-destructive">Delete</DropdownMenuItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
+        </div>
       ),
-      className: "w-[50px]"
+      className: "w-[120px]"
     }
   ];
 
   const filteredData = statusFilter === "all" 
     ? data 
-    : data.filter(channel => channel.status === statusFilter);
+    : data.filter(artery => artery.status === statusFilter);
 
   return (
     <Card>
       <CardHeader>
-        <CardTitle>Artery  Management</CardTitle>
-        <CardDescription>View and manage all Artery connections</CardDescription>
+        <CardTitle>Artery Management</CardTitle>
+        <CardDescription>View and manage all Artery connections with primary and backup channels</CardDescription>
       </CardHeader>
       <CardContent>
         <div className="flex justify-end mb-4">
@@ -150,13 +174,50 @@ export function DashboardChannelsTable({ data, onViewChannel }: DashboardChannel
           columns={columns}
           keyField="id"
           searchable={true}
-          searchPlaceholder="Search channels..."
+          searchPlaceholder="Search arteries..."
           pagination={true}
           pageSize={8}
-          highlightCondition={(channel) => channel.status === "fault"}
+          highlightCondition={(artery) => artery.status === "fault"}
           highlightClass="bg-red-50/50 dark:bg-red-900/10"
-          emptyMessage="No channels found matching your filters"
+          emptyMessage="No arteries found matching your filters"
         />
+        
+        {selectedArtery && (
+          <ArteryDetailsDialog
+            artery={{
+              id: selectedArtery.id,
+              name: selectedArtery.name,
+              primaryChannelStatus: selectedArtery.primaryChannel.status,
+              backupChannelStatus: selectedArtery.backupChannel.status,
+              cpu: selectedArtery.bitrateIn ? Math.floor(Math.random() * 30) + 20 : 0,
+              ram: selectedArtery.bitrateIn ? Math.floor(Math.random() * 40) + 30 : 0,
+              bitrateIn: selectedArtery.bitrateIn || 0,
+              bitrateOut: selectedArtery.bitrateOut || 0,
+              broadcastIp: selectedArtery.broadcastIp,
+              mode: selectedArtery.mode,
+              primaryChannelActive: selectedArtery.primaryChannel.isActive,
+              sources: [
+                {
+                  name: selectedArtery.source,
+                  ip: selectedArtery.broadcastIp,
+                  status: "enabled"
+                }
+              ],
+              destinations: [
+                {
+                  name: selectedArtery.primaryChannel.destination,
+                  ip: selectedArtery.primaryChannel.destination + " IP",
+                  type: "primary"
+                },
+                {
+                  name: selectedArtery.backupChannel.destination,
+                  ip: selectedArtery.backupChannel.destination + " IP",
+                  type: "backup"
+                }
+              ]
+            }}
+          />
+        )}
       </CardContent>
     </Card>
   );

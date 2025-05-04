@@ -14,26 +14,38 @@ export interface Source {
     updatedAt?: string;
 }
 
-// Channel entity type
-export interface Channel {
+// Artery entity type - new main entity representing a source-to-destination connection
+export interface Artery {
     id: number;
     name: string;
     sourceId: number;
-    destinationId: number;
     source?: Source;
-    destination?: Destination;
     status: 'active' | 'standby' | 'fault';
-    mode: 'active' | 'passive';
-    bandwidth: string;
     broadcastIp: string;
     online: boolean;
-    primaryDestinationIp?: string;
-    secondaryDestinationIp?: string;
     encryptionEnabled?: boolean;
     protocol?: string;
     bitrateIn?: number;
     bitrateOut?: number;
     lastError?: string;
+    createdAt?: string;
+    updatedAt?: string;
+    primaryChannel?: Channel;
+    backupChannel?: Channel;
+}
+
+// Channel entity type - now represents one path within an artery
+export interface Channel {
+    id: number;
+    arteryId: number;
+    destinationId: number;
+    destination?: Destination;
+    isActive: boolean; // Whether this is the active channel for the artery
+    mode: 'active' | 'passive';
+    bandwidth: string;
+    primaryDestinationIp?: string;
+    secondaryDestinationIp?: string;
+    status: 'online' | 'offline';
     createdAt?: string;
     updatedAt?: string;
 }
@@ -81,13 +93,13 @@ export interface DashboardStats {
     };
 }
 
-// Channel status for live monitoring
-export interface ChannelStatus {
+// Artery status for live monitoring
+export interface ArteryStatus {
     id: number;
-    channelId: number;
+    arteryId: number;
     name: string;
-    channelLink1Status: 'online' | 'offline';
-    channelLink2Status: 'online' | 'offline';
+    primaryChannelStatus: 'online' | 'offline';
+    backupChannelStatus: 'online' | 'offline';
     cpu: number;
     ram: number;
     bitrateIn: number;

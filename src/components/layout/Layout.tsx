@@ -1,3 +1,4 @@
+
 // components/layout/Layout.tsx
 import { ReactNode, useState } from "react";
 import { Outlet } from "react-router-dom";
@@ -12,13 +13,20 @@ interface LayoutProps {
 export const Layout = ({ className }: LayoutProps) => {
   const [collapsed, setCollapsed] = useState(false);
   
+  const toggleSidebar = () => {
+    setCollapsed(!collapsed);
+  };
+  
   return (
     <div className={cn("min-h-screen flex flex-col bg-background", className)}>
       <Sidebar 
-        className="md:block hidden" 
+        className="md:block hidden"
+        collapsed={collapsed}
       />
       <Header 
-        collapsed={collapsed} className="md:pl-0" 
+        collapsed={collapsed} 
+        className="md:pl-0" 
+        onToggleSidebar={toggleSidebar} 
       />
       <main className={cn(
         "flex-1 transition-all duration-300 ease-in-out p-4 md:p-6",
