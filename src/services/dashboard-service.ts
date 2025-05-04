@@ -15,7 +15,7 @@ const api = ApiService.getInstance();
 const DASHBOARD_ENDPOINTS = {
     STATUS: '/dashboard/status',
     BANDWIDTH: '/dashboard/bandwidth',
-    TOP_CHANNELS: '/dashboard/channels/top',
+    TOP_CHANNELS: '/dashboard/arteries/top',
     ALERTS: '/dashboard/alerts',
 };
 

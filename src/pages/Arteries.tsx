@@ -19,8 +19,8 @@ import {
 import { MoreVertical} from "lucide-react";
 import { useForm } from "react-hook-form";
 
-// Extended Channel type with more configuration options
-type Channel = {
+// Extended artery type with more configuration options
+type Artery  = {
   id: number;
   name: string;
   source: string;
@@ -39,8 +39,8 @@ type Channel = {
   bitrateOut?: number;
 };
 
-// Mock data for channels with extended properties
-const channelsData: Channel[] = [
+// Mock data for arteries with extended properties
+const arteriesData: Artery [] = [
   { 
     id: 1, 
     name: "Main Feed", 
@@ -143,7 +143,7 @@ const channelsData: Channel[] = [
     bitrateIn: 0,
     bitrateOut: 0
   },
-  { id: 7, name: "Media Channel", source: "Media Server", destination: "CDN Node", bandwidth: "920 Mbps", status: "active",
+  { id: 7, name: "Media Artery ", source: "Media Server", destination: "CDN Node", bandwidth: "920 Mbps", status: "active",
     broadcastIp: "239.255.0.7",
     mode: "active",
     online: true,
@@ -185,14 +185,14 @@ const channelsData: Channel[] = [
     bitrateOut: 58 },
 ];
 
-export default function Channels() {
+export default function Arteries() {
   const [statusFilter, setStatusFilter] = useState<"all" | "active" | "standby" | "fault">("all");
-  const [selectedChannel, setSelectedChannel] = useState<Channel | null>(null);
-  const [openChannelDialog, setOpenChannelDialog] = useState(false);
+  const [selectedArtery, setSelectedArtery] = useState<Artery  | null>(null);
+  const [openArteryDialog, setOpenArteryDialog] = useState(false);
   
-  // Form for editing a channel
-  const form = useForm<Channel>({
-    defaultValues: selectedChannel || {
+  // Form for editing a arteries
+  const form = useForm<Artery >({
+    defaultValues: selectedArtery || {
       id: 0,
       name: "",
       source: "",
@@ -210,11 +210,11 @@ export default function Channels() {
   });
   
   // Define table columns
-  const columns: Column<Channel>[] = [
+  const columns: Column<Artery >[] = [
     {
       header: "Name",
       accessorKey: "name",
-      cell: (channel) => <span className="font-medium">{channel.name}</span>,
+      cell: (artery) => <span className="font-medium">{artery.name}</span>,
       sortable: true
     },
     {
@@ -238,15 +238,15 @@ export default function Channels() {
     {
       header: "Mode",
       accessorKey: "mode",
-      cell: (channel) => (
+      cell: (artery) => (
         <Badge
           variant="outline"
           className={
-            channel.mode === 'active' ? 'border-green-500 text-green-600 bg-green-50/50 dark:bg-green-900/10' :
+            artery.mode === 'active' ? 'border-green-500 text-green-600 bg-green-50/50 dark:bg-green-900/10' :
             'border-amber-500 text-amber-600 bg-amber-50/50 dark:bg-amber-900/10'
           }
         >
-          {channel.mode === 'active' ? 'Active' : 'Passive'}
+          {artery.mode === 'active' ? 'Active' : 'Passive'}
         </Badge>
       ),
       sortable: true
@@ -254,17 +254,17 @@ export default function Channels() {
     {
       header: "Status",
       accessorKey: "status",
-      cell: (channel) => (
+      cell: (artery) => (
         <Badge
           variant="outline"
           className={
-            channel.status === 'active' ? 'border-status-active text-status-active bg-green-50/50 dark:bg-green-900/10' :
-            channel.status === 'standby' ? 'border-status-standby text-status-standby bg-amber-50/50 dark:bg-amber-900/10' :
+            artery.status === 'active' ? 'border-status-active text-status-active bg-green-50/50 dark:bg-green-900/10' :
+            artery.status === 'standby' ? 'border-status-standby text-status-standby bg-amber-50/50 dark:bg-amber-900/10' :
             'border-status-fault text-status-fault bg-red-50/50 dark:bg-red-900/10'
           }
         >
-          {channel.status === 'active' ? 'Active' :
-           channel.status === 'standby' ? 'Standby' : 'Fault'}
+          {artery.status === 'active' ? 'Active' :
+           artery.status === 'standby' ? 'Standby' : 'Fault'}
         </Badge>
       ),
       sortable: true
@@ -272,15 +272,15 @@ export default function Channels() {
     {
       header: "Online",
       accessorKey: "online",
-      cell: (channel) => (
+      cell: (artery) => (
         <Badge
           variant="outline"
           className={
-            channel.online ? 'border-green-500 text-green-600 bg-green-50/50 dark:bg-green-900/10' :
+            artery.online ? 'border-green-500 text-green-600 bg-green-50/50 dark:bg-green-900/10' :
             'border-red-500 text-red-600 bg-red-50/50 dark:bg-red-900/10'
           }
         >
-          {channel.online ? 'Online' : 'Offline'}
+          {artery.online ? 'Online' : 'Offline'}
         </Badge>
       ),
       sortable: true
@@ -288,7 +288,7 @@ export default function Channels() {
     {
       header: "",
       accessorKey: "id",
-      cell: (channel) => (
+      cell: (artery) => (
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
             <Button variant="ghost" size="icon" className="h-8 w-8">
@@ -296,8 +296,8 @@ export default function Channels() {
             </Button>
           </DropdownMenuTrigger>
           <DropdownMenuContent align="end">
-            <DropdownMenuItem onClick={() => handleViewChannel(channel)}>View Details</DropdownMenuItem>
-            <DropdownMenuItem onClick={() => handleEditChannel(channel)}>Edit Channel</DropdownMenuItem>
+            <DropdownMenuItem onClick={() => handleViewArtery(artery)}>View Details</DropdownMenuItem>
+            <DropdownMenuItem onClick={() => handleEditArtery(artery)}>Edit Artery </DropdownMenuItem>
             <DropdownMenuItem>Manage Bandwidth</DropdownMenuItem>
             <DropdownMenuItem className="text-destructive">Delete</DropdownMenuItem>
           </DropdownMenuContent>
@@ -307,31 +307,31 @@ export default function Channels() {
     }
   ];
   
-  const handleViewChannel = (channel: Channel) => {
-    setSelectedChannel(channel);
-    setOpenChannelDialog(true);
+  const handleViewArtery = (artery: Artery ) => {
+    setSelectedArtery(artery);
+    setOpenArteryDialog(true);
   };
   
-  const handleEditChannel = (channel: Channel) => {
-    setSelectedChannel(channel);
-    form.reset(channel);
-    setOpenChannelDialog(true);
+  const handleEditArtery = (artery: Artery ) => {
+    setSelectedArtery(artery);
+    form.reset(artery);
+    setOpenArteryDialog(true);
   };
   
   
   
   // Filter data based on status filter
   const filteredData = statusFilter === "all" 
-    ? channelsData 
-    : channelsData.filter(channel => channel.status === statusFilter);
+    ? arteriesData 
+    : arteriesData.filter(artery => artery.status === statusFilter);
 
   return (
     <div className="space-y-6 animate-fade-in">
     
       <Card>
         <CardHeader>
-          <CardTitle>Channel Management</CardTitle>
-          <CardDescription>View and manage all channel connections</CardDescription>
+          <CardTitle>Artery  Management</CardTitle>
+          <CardDescription>View and manage all artery  connections</CardDescription>
         </CardHeader>
         <CardContent>
           <div className="flex justify-end mb-4">
@@ -356,12 +356,12 @@ export default function Channels() {
             columns={columns}
             keyField="id"
             searchable={true}
-            searchPlaceholder="Search channels..."
+            searchPlaceholder="Search arteries..."
             pagination={true}
             pageSize={8}
-            highlightCondition={(channel) => channel.status === "fault"}
+            highlightCondition={(artery ) => artery.status === "fault"}
             highlightClass="bg-red-50/50 dark:bg-red-900/10"
-            emptyMessage="No channels found matching your filters"
+            emptyMessage="No Arteries found matching your filters"
           />
         </CardContent>
       </Card>

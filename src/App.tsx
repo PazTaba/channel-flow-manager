@@ -6,7 +6,7 @@ import { ProtectedRoute } from "@/components/auth/ProtectedRoute";
 
 // Pages
 import Dashboard from "@/pages/Dashboard";
-import Channels from "@/pages/Channels";
+import Arteries from "@/pages/Arteries";
 import Sources from "@/pages/Sources";
 import Destinations from "@/pages/Destinations";
 import Settings from "@/pages/Settings";
@@ -24,38 +24,36 @@ const App = () => (
       {/* Public routes */}
       <Route path="/login" element={<Login />} />
       <Route path="/unauthorized" element={<Unauthorized />} />
-      
+
       {/* Protected routes within Layout */}
-      <Route path="/" element={
+      <Route element={
         <ProtectedRoute>
-          <Layout>
-            <Routes>
-              <Route index element={<Dashboard />} />
-              <Route path="channels" element={<Channels />} />
-              <Route path="sources" element={<Sources />} />
-              <Route path="destinations" element={<Destinations />} />
-              
-              {/* Settings - accessible to admins and operators */}
-              <Route path="settings" element={
-                <ProtectedRoute allowedRoles={['admin', 'operator']}>
-                  <Settings />
-                </ProtectedRoute>
-              } />
-              
-              {/* User management - admin only */}
-              <Route path="users" element={
-                <ProtectedRoute allowedRoles={['admin']}>
-                  <Users />
-                </ProtectedRoute>
-              } />
-              
-              {/* Catch-all route for 404 */}
-              <Route path="*" element={<NotFound />} />
-            </Routes>
-          </Layout>
+          <Layout />
         </ProtectedRoute>
-      } />
-      
+      }>
+        <Route path="/" element={<Dashboard />} />
+        <Route path="/arteries" element={<Arteries />} />
+        <Route path="/sources" element={<Sources />} />
+        <Route path="/destinations" element={<Destinations />} />
+
+        {/* Settings - accessible to admins and operators */}
+        <Route path="/settings" element={
+          <ProtectedRoute allowedRoles={['admin', 'operator']}>
+            <Settings />
+          </ProtectedRoute>
+        } />
+
+        {/* User management - admin only */}
+        <Route path="/users" element={
+          <ProtectedRoute allowedRoles={['admin']}>
+            <Users />
+          </ProtectedRoute>
+        } />
+
+        {/* Catch-all route for 404 inside protected area */}
+        <Route path="*" element={<NotFound />} />
+      </Route>
+
       {/* Redirect any other path to home */}
       <Route path="*" element={<Navigate to="/" replace />} />
     </Routes>

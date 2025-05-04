@@ -53,8 +53,8 @@ export function Sidebar({ className }: SidebarProps) {
       icon: LayoutDashboard,
     },
     {
-      title: "Channels",
-      href: "/channels",
+      title: "Arteries",
+      href: "/arteries",
       icon: Radio,
       badge: stats?.fault ?? 0,
     },

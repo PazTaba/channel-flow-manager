@@ -85,7 +85,7 @@ export function ChannelDetailsDialog({ channel }: ChannelDetailsDialogProps) {
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2 text-xl">
             <Activity className="w-5 h-5 mr-1" />
-            Channel: {channel.name}
+            Artery : {channel.name}
             <Badge mode={channel.mode} />
           </DialogTitle>
         </DialogHeader>

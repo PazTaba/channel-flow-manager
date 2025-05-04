@@ -1,4 +1,3 @@
-
 import { AlertsComponent } from "@/components/alerts/AlertsComponent";
 import { ChannelDetailsDialog } from "@/components/dashboard/ChannelDetailsDialog";
 import { DashboardStatusCards } from "@/components/dashboard/DashboardStatusCards";
@@ -11,9 +10,10 @@ import type { Channel } from "@/components/dashboard/DashboardChannelsTable";
 
 import { useForm } from "react-hook-form";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
+import { toast } from "@/components/ui/use-toast"; // אם יש לך קומפוננט של toast
 
 import { Badge } from "@/components/ui/badge";
 
@@ -38,680 +38,120 @@ import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
 import { Settings, Database, Share2, Activity, ArrowUp, ArrowDown } from "lucide-react";
 
+// קבוע המגדיר את כתובת ה-API
+const API_URL = 'http://localhost:3000/api';
 
-// Mock data for dashboard
-const channelStats = {
-  total: 24,
-  active: 18,
-  standby: 4,
-  fault: 2
+// פונקציה עזר לקבלת/יצירת token
+const getAuthToken = async () => {
+  // בדיקה אם יש token קיים ב-localStorage
+  let token = localStorage.getItem('auth_token');
+
+  // אם אין token, יצירת אחד חדש
+  if (!token) {
+    try {
+      const response = await fetch(`${API_URL}/auth/login`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          username: 'admin',
+          password: 'password'
+        }),
+      });
+
+      const data = await response.json();
+
+      if (data.success && data.data.access_token) {
+        token = data.data.access_token;
+        localStorage.setItem('auth_token', token);
+      } else {
+        throw new Error('Failed to login');
+      }
+    } catch (error) {
+      console.error('Error getting auth token:', error);
+      throw error;
+    }
+  }
+
+  return token;
 };
 
-// Fix the TopChannel status type to match the expected union type
-const topChannels = [
-  { id: 1, name: "Main Feed", bandwidth: "1.2 Gbps", status: "active" as const },
-  { id: 2, name: "Backup Link", bandwidth: "850 Mbps", status: "active" as const },
-  { id: 3, name: "Remote Site A", bandwidth: "620 Mbps", status: "active" as const },
-  { id: 4, name: "Cloud Storage", bandwidth: "480 Mbps", status: "standby" as const },
-  { id: 5, name: "Archive System", bandwidth: "350 Mbps", status: "active" as const }
-];
+// פונקציה עזר לביצוע קריאות API עם אימות
+const fetchWithAuth = async (endpoint, options = {}) => {
+  try {
+    const token = await getAuthToken();
 
+    const headers = {
+      'Authorization': `Bearer ${token}`,
+      'Content-Type': 'application/json',
+      ...(options.headers || {})
+    };
 
-const arteryChannels = [
-  {
-    name: "Artery 1",
-    channelLink1Status: "online" as "online" | "offline",
-    channelLink2Status: "offline" as "online" | "offline",
-    cpu: 47,
-    ram: 61,
-    bitrateIn: 125,
-    bitrateOut: 112,
-    broadcastIP: "239.255.1.1",
-    mode: "active" as "active" | "passive",
-    sources: [
-      {
-        name: "Primary Source",
-        ip: "192.168.1.10",
-        status: "enabled" as "enabled" | "fallback"
-      },
-      {
-        name: "Backup Source",
-        ip: "192.168.1.11",
-        status: "fallback" as "enabled" | "fallback"
+    const response = await fetch(`${API_URL}${endpoint}`, {
+      ...options,
+      headers
+    });
+
+    // אם קיבלנו שגיאת 401 (לא מורשה), ננסה לקבל token חדש
+    if (response.status === 401) {
+      localStorage.removeItem('auth_token');
+      const newToken = await getAuthToken();
+
+      // נסיון נוסף עם ה-token החדש
+      const newResponse = await fetch(`${API_URL}${endpoint}`, {
+        ...options,
+        headers: {
+          'Authorization': `Bearer ${newToken}`,
+          'Content-Type': 'application/json',
+          ...(options.headers || {})
+        }
+      });
+
+      if (!newResponse.ok) {
+        throw new Error(`API request failed: ${newResponse.statusText}`);
       }
-    ],
-    destinations: [
-      {
-        name: "Main Output",
-        ip: "192.168.2.10",
-        type: "primary" as "primary" | "secondary"
-      },
-      {
-        name: "Backup Output",
-        ip: "192.168.2.11",
-        type: "secondary" as "primary" | "secondary"
-      }
-    ]
-  },
-  {
-    name: "Artery 1",
-    channelLink1Status: "online" as "online" | "offline",
-    channelLink2Status: "online" as "online" | "offline",
-    cpu: 47,
-    ram: 61,
-    bitrateIn: 125,
-    bitrateOut: 112,
-    broadcastIP: "239.255.1.1",
-    mode: "active" as "active" | "passive",
-    sources: [
-      {
-        name: "Primary Source",
-        ip: "192.168.1.10",
-        status: "enabled" as "enabled" | "fallback"
-      },
-      {
-        name: "Backup Source",
-        ip: "192.168.1.11",
-        status: "fallback" as "enabled" | "fallback"
-      }
-    ],
-    destinations: [
-      {
-        name: "Main Output",
-        ip: "192.168.2.10",
-        type: "primary" as "primary" | "secondary"
-      },
-      {
-        name: "Backup Output",
-        ip: "192.168.2.11",
-        type: "secondary" as "primary" | "secondary"
-      }
-    ]
-  },
-  {
-    name: "Artery 1",
-    channelLink1Status: "online" as "online" | "offline",
-    channelLink2Status: "online" as "online" | "offline",
-    cpu: 47,
-    ram: 61,
-    bitrateIn: 125,
-    bitrateOut: 112,
-    broadcastIP: "239.255.1.1",
-    mode: "active" as "active" | "passive",
-    sources: [
-      {
-        name: "Primary Source",
-        ip: "192.168.1.10",
-        status: "enabled" as "enabled" | "fallback"
-      },
-      {
-        name: "Backup Source",
-        ip: "192.168.1.11",
-        status: "fallback" as "enabled" | "fallback"
-      }
-    ],
-    destinations: [
-      {
-        name: "Main Output",
-        ip: "192.168.2.10",
-        type: "primary" as "primary" | "secondary"
-      },
-      {
-        name: "Backup Output",
-        ip: "192.168.2.11",
-        type: "secondary" as "primary" | "secondary"
-      }
-    ]
-  },
-  {
-    name: "Artery 1",
-    channelLink1Status: "online" as "online" | "offline",
-    channelLink2Status: "online" as "online" | "offline",
-    cpu: 47,
-    ram: 61,
-    bitrateIn: 125,
-    bitrateOut: 112,
-    broadcastIP: "239.255.1.1",
-    mode: "active" as "active" | "passive",
-    sources: [
-      {
-        name: "Primary Source",
-        ip: "192.168.1.10",
-        status: "enabled" as "enabled" | "fallback"
-      },
-      {
-        name: "Backup Source",
-        ip: "192.168.1.11",
-        status: "fallback" as "enabled" | "fallback"
-      }
-    ],
-    destinations: [
-      {
-        name: "Main Output",
-        ip: "192.168.2.10",
-        type: "primary" as "primary" | "secondary"
-      },
-      {
-        name: "Backup Output",
-        ip: "192.168.2.11",
-        type: "secondary" as "primary" | "secondary"
-      }
-    ]
-  },
-  {
-    name: "Artery 1",
-    channelLink1Status: "online" as "online" | "offline",
-    channelLink2Status: "online" as "online" | "offline",
-    cpu: 47,
-    ram: 61,
-    bitrateIn: 125,
-    bitrateOut: 112,
-    broadcastIP: "239.255.1.1",
-    mode: "active" as "active" | "passive",
-    sources: [
-      {
-        name: "Primary Source",
-        ip: "192.168.1.10",
-        status: "enabled" as "enabled" | "fallback"
-      },
-      {
-        name: "Backup Source",
-        ip: "192.168.1.11",
-        status: "fallback" as "enabled" | "fallback"
-      }
-    ],
-    destinations: [
-      {
-        name: "Main Output",
-        ip: "192.168.2.10",
-        type: "primary" as "primary" | "secondary"
-      },
-      {
-        name: "Backup Output",
-        ip: "192.168.2.11",
-        type: "secondary" as "primary" | "secondary"
-      }
-    ]
-  },
-  {
-    name: "Artery 1",
-    channelLink1Status: "online" as "online" | "offline",
-    channelLink2Status: "online" as "online" | "offline",
-    cpu: 47,
-    ram: 61,
-    bitrateIn: 125,
-    bitrateOut: 112,
-    broadcastIP: "239.255.1.1",
-    mode: "active" as "active" | "passive",
-    sources: [
-      {
-        name: "Primary Source",
-        ip: "192.168.1.10",
-        status: "enabled" as "enabled" | "fallback"
-      },
-      {
-        name: "Backup Source",
-        ip: "192.168.1.11",
-        status: "fallback" as "enabled" | "fallback"
-      }
-    ],
-    destinations: [
-      {
-        name: "Main Output",
-        ip: "192.168.2.10",
-        type: "primary" as "primary" | "secondary"
-      },
-      {
-        name: "Backup Output",
-        ip: "192.168.2.11",
-        type: "secondary" as "primary" | "secondary"
-      }
-    ]
-  },
-  {
-    name: "Artery 1",
-    channelLink1Status: "online" as "online" | "offline",
-    channelLink2Status: "online" as "online" | "offline",
-    cpu: 47,
-    ram: 61,
-    bitrateIn: 125,
-    bitrateOut: 112,
-    broadcastIP: "239.255.1.1",
-    mode: "active" as "active" | "passive",
-    sources: [
-      {
-        name: "Primary Source",
-        ip: "192.168.1.10",
-        status: "enabled" as "enabled" | "fallback"
-      },
-      {
-        name: "Backup Source",
-        ip: "192.168.1.11",
-        status: "fallback" as "enabled" | "fallback"
-      }
-    ],
-    destinations: [
-      {
-        name: "Main Output",
-        ip: "192.168.2.10",
-        type: "primary" as "primary" | "secondary"
-      },
-      {
-        name: "Backup Output",
-        ip: "192.168.2.11",
-        type: "secondary" as "primary" | "secondary"
-      }
-    ]
-  },
-  {
-    name: "Artery 1",
-    channelLink1Status: "online" as "online" | "offline",
-    channelLink2Status: "online" as "online" | "offline",
-    cpu: 47,
-    ram: 61,
-    bitrateIn: 125,
-    bitrateOut: 112,
-    broadcastIP: "239.255.1.1",
-    mode: "active" as "active" | "passive",
-    sources: [
-      {
-        name: "Primary Source",
-        ip: "192.168.1.10",
-        status: "enabled" as "enabled" | "fallback"
-      },
-      {
-        name: "Backup Source",
-        ip: "192.168.1.11",
-        status: "fallback" as "enabled" | "fallback"
-      }
-    ],
-    destinations: [
-      {
-        name: "Main Output",
-        ip: "192.168.2.10",
-        type: "primary" as "primary" | "secondary"
-      },
-      {
-        name: "Backup Output",
-        ip: "192.168.2.11",
-        type: "secondary" as "primary" | "secondary"
-      }
-    ]
-  },
-  {
-    name: "Artery 1",
-    channelLink1Status: "online" as "online" | "offline",
-    channelLink2Status: "online" as "online" | "offline",
-    cpu: 47,
-    ram: 61,
-    bitrateIn: 125,
-    bitrateOut: 112,
-    broadcastIP: "239.255.1.1",
-    mode: "active" as "active" | "passive",
-    sources: [
-      {
-        name: "Primary Source",
-        ip: "192.168.1.10",
-        status: "enabled" as "enabled" | "fallback"
-      },
-      {
-        name: "Backup Source",
-        ip: "192.168.1.11",
-        status: "fallback" as "enabled" | "fallback"
-      }
-    ],
-    destinations: [
-      {
-        name: "Main Output",
-        ip: "192.168.2.10",
-        type: "primary" as "primary" | "secondary"
-      },
-      {
-        name: "Backup Output",
-        ip: "192.168.2.11",
-        type: "secondary" as "primary" | "secondary"
-      }
-    ]
-  },
-  {
-    name: "Artery 1",
-    channelLink1Status: "online" as "online" | "offline",
-    channelLink2Status: "online" as "online" | "offline",
-    cpu: 47,
-    ram: 61,
-    bitrateIn: 125,
-    bitrateOut: 112,
-    broadcastIP: "239.255.1.1",
-    mode: "active" as "active" | "passive",
-    sources: [
-      {
-        name: "Primary Source",
-        ip: "192.168.1.10",
-        status: "enabled" as "enabled" | "fallback"
-      },
-      {
-        name: "Backup Source",
-        ip: "192.168.1.11",
-        status: "fallback" as "enabled" | "fallback"
-      }
-    ],
-    destinations: [
-      {
-        name: "Main Output",
-        ip: "192.168.2.10",
-        type: "primary" as "primary" | "secondary"
-      },
-      {
-        name: "Backup Output",
-        ip: "192.168.2.11",
-        type: "secondary" as "primary" | "secondary"
-      }
-    ]
-  },
-  {
-    name: "Artery 1",
-    channelLink1Status: "online" as "online" | "offline",
-    channelLink2Status: "online" as "online" | "offline",
-    cpu: 47,
-    ram: 61,
-    bitrateIn: 125,
-    bitrateOut: 112,
-    broadcastIP: "239.255.1.1",
-    mode: "active" as "active" | "passive",
-    sources: [
-      {
-        name: "Primary Source",
-        ip: "192.168.1.10",
-        status: "enabled" as "enabled" | "fallback"
-      },
-      {
-        name: "Backup Source",
-        ip: "192.168.1.11",
-        status: "fallback" as "enabled" | "fallback"
-      }
-    ],
-    destinations: [
-      {
-        name: "Main Output",
-        ip: "192.168.2.10",
-        type: "primary" as "primary" | "secondary"
-      },
-      {
-        name: "Backup Output",
-        ip: "192.168.2.11",
-        type: "secondary" as "primary" | "secondary"
-      }
-    ]
-  },
-  {
-    name: "Artery 1",
-    channelLink1Status: "online" as "online" | "offline",
-    channelLink2Status: "online" as "online" | "offline",
-    cpu: 47,
-    ram: 61,
-    bitrateIn: 125,
-    bitrateOut: 112,
-    broadcastIP: "239.255.1.1",
-    mode: "active" as "active" | "passive",
-    sources: [
-      {
-        name: "Primary Source",
-        ip: "192.168.1.10",
-        status: "enabled" as "enabled" | "fallback"
-      },
-      {
-        name: "Backup Source",
-        ip: "192.168.1.11",
-        status: "fallback" as "enabled" | "fallback"
-      }
-    ],
-    destinations: [
-      {
-        name: "Main Output",
-        ip: "192.168.2.10",
-        type: "primary" as "primary" | "secondary"
-      },
-      {
-        name: "Backup Output",
-        ip: "192.168.2.11",
-        type: "secondary" as "primary" | "secondary"
-      }
-    ]
-  },
-  {
-    name: "Artery 1",
-    channelLink1Status: "online" as "online" | "offline",
-    channelLink2Status: "online" as "online" | "offline",
-    cpu: 47,
-    ram: 61,
-    bitrateIn: 125,
-    bitrateOut: 112,
-    broadcastIP: "239.255.1.1",
-    mode: "active" as "active" | "passive",
-    sources: [
-      {
-        name: "Primary Source",
-        ip: "192.168.1.10",
-        status: "enabled" as "enabled" | "fallback"
-      },
-      {
-        name: "Backup Source",
-        ip: "192.168.1.11",
-        status: "fallback" as "enabled" | "fallback"
-      }
-    ],
-    destinations: [
-      {
-        name: "Main Output",
-        ip: "192.168.2.10",
-        type: "primary" as "primary" | "secondary"
-      },
-      {
-        name: "Backup Output",
-        ip: "192.168.2.11",
-        type: "secondary" as "primary" | "secondary"
-      }
-    ]
-  },
-  {
-    name: "Artery 1",
-    channelLink1Status: "online" as "online" | "offline",
-    channelLink2Status: "online" as "online" | "offline",
-    cpu: 47,
-    ram: 61,
-    bitrateIn: 125,
-    bitrateOut: 112,
-    broadcastIP: "239.255.1.1",
-    mode: "active" as "active" | "passive",
-    sources: [
-      {
-        name: "Primary Source",
-        ip: "192.168.1.10",
-        status: "enabled" as "enabled" | "fallback"
-      },
-      {
-        name: "Backup Source",
-        ip: "192.168.1.11",
-        status: "fallback" as "enabled" | "fallback"
-      }
-    ],
-    destinations: [
-      {
-        name: "Main Output",
-        ip: "192.168.2.10",
-        type: "primary" as "primary" | "secondary"
-      },
-      {
-        name: "Backup Output",
-        ip: "192.168.2.11",
-        type: "secondary" as "primary" | "secondary"
-      }
-    ]
+
+      return newResponse.json();
+    }
+
+    if (!response.ok) {
+      throw new Error(`API request failed: ${response.statusText}`);
+    }
+
+    return response.json();
+  } catch (error) {
+    console.error(`Error fetching from ${endpoint}:`, error);
+    throw error;
   }
-  // ... Add similar detailed data for other channels
-];
-
-
-const channelsData: Channel[] = [
-  {
-    id: 1,
-    name: "Main Feed",
-    source: "Network Switch A",
-    destination: "Distribution Node",
-    bandwidth: "1.2 Gbps",
-    status: "active",
-    broadcastIp: "239.255.0.1",
-    mode: "active",
-    online: true,
-    primaryDestinationIp: "239.255.1.1",
-    secondaryDestinationIp: "239.255.1.2",
-    encryptionEnabled: false,
-    protocol: "UDP TS",
-    bitrateIn: 125,
-    bitrateOut: 118
-  },
-  {
-    id: 2,
-    name: "Backup Link",
-    source: "Backup Server",
-    destination: "Failover System",
-    bandwidth: "850 Mbps",
-    status: "active",
-    broadcastIp: "239.255.0.2",
-    mode: "active",
-    online: true,
-    primaryDestinationIp: "239.255.2.1",
-    secondaryDestinationIp: null,
-    encryptionEnabled: false,
-    protocol: "UDP TS",
-    bitrateIn: 87,
-    bitrateOut: 80
-  },
-  {
-    id: 3,
-    name: "Remote Site A",
-    source: "Remote Location",
-    destination: "HQ System",
-    bandwidth: "620 Mbps",
-    status: "active",
-    broadcastIp: "239.255.0.3",
-    mode: "active",
-    online: true,
-    primaryDestinationIp: "239.255.3.1",
-    secondaryDestinationIp: "239.255.3.2",
-    encryptionEnabled: true,
-    protocol: "UDP TS",
-    bitrateIn: 32,
-    bitrateOut: 29
-  },
-  {
-    id: 4,
-    name: "Cloud Storage",
-    source: "On-Prem Server",
-    destination: "Cloud Provider",
-    bandwidth: "480 Mbps",
-    status: "standby",
-    broadcastIp: "239.255.0.4",
-    mode: "passive",
-    online: false,
-    primaryDestinationIp: "239.255.4.1",
-    secondaryDestinationIp: null,
-    encryptionEnabled: false,
-    protocol: "UDP TS",
-    bitrateIn: 0,
-    bitrateOut: 0
-  },
-  {
-    id: 5,
-    name: "Archive System",
-    source: "Content Server",
-    destination: "Archive Storage",
-    bandwidth: "350 Mbps",
-    status: "active",
-    broadcastIp: "239.255.0.5",
-    mode: "active",
-    online: true,
-    primaryDestinationIp: "239.255.5.1",
-    secondaryDestinationIp: "239.255.5.2",
-    encryptionEnabled: false,
-    protocol: "UDP TS",
-    bitrateIn: 143,
-    bitrateOut: 137
-  },
-  {
-    id: 6,
-    name: "External Feed",
-    source: "Partner Network",
-    destination: "Processing Server",
-    bandwidth: "720 Mbps",
-    status: "fault",
-    broadcastIp: "239.255.0.6",
-    mode: "active",
-    online: false,
-    primaryDestinationIp: "239.255.6.1",
-    secondaryDestinationIp: null,
-    encryptionEnabled: true,
-    protocol: "UDP TS",
-    bitrateIn: 0,
-    bitrateOut: 0
-  },
-  {
-    id: 7, name: "Media Channel", source: "Media Server", destination: "CDN Node", bandwidth: "920 Mbps", status: "active",
-    broadcastIp: "239.255.0.7",
-    mode: "active",
-    online: true,
-    primaryDestinationIp: "239.255.7.1",
-    secondaryDestinationIp: "239.255.7.2",
-    encryptionEnabled: false,
-    protocol: "UDP TS",
-    bitrateIn: 92,
-    bitrateOut: 85
-  },
-  {
-    id: 8, name: "Secure Link", source: "Secure Server", destination: "Encrypted Storage", bandwidth: "290 Mbps", status: "active",
-    broadcastIp: "239.255.0.8",
-    mode: "active",
-    online: true,
-    primaryDestinationIp: "239.255.8.1",
-    secondaryDestinationIp: null,
-    encryptionEnabled: false,
-    protocol: "UDP TS",
-    bitrateIn: 29,
-    bitrateOut: 22
-  },
-  {
-    id: 9, name: "Analytics Feed", source: "User Systems", destination: "Analytics Server", bandwidth: "180 Mbps", status: "standby",
-    broadcastIp: "239.255.0.9",
-    mode: "passive",
-    online: false,
-    primaryDestinationIp: "239.255.9.1",
-    secondaryDestinationIp: "239.255.9.2",
-    encryptionEnabled: true,
-    protocol: "UDP TS",
-    bitrateIn: 18,
-    bitrateOut: 11
-  },
-  {
-    id: 10, name: "Disaster Recovery", source: "Primary DC", destination: "Secondary DC", bandwidth: "650 Mbps", status: "active",
-    broadcastIp: "239.255.0.10",
-    mode: "active",
-    online: true,
-    primaryDestinationIp: "239.255.10.1",
-    secondaryDestinationIp: null,
-    encryptionEnabled: false,
-    protocol: "UDP TS",
-    bitrateIn: 65,
-    bitrateOut: 58
-  },
-];
+};
 
 export default function Dashboard() {
+  // State for data
+  const [channelStats, setChannelStats] = useState({
+    total: 0,
+    active: 0,
+    standby: 0,
+    fault: 0
+  });
+
+  const [topChannels, setTopChannels] = useState([]);
+  const [arteryChannels, setArteryChannels] = useState([]);
+  const [channelsData, setChannelsData] = useState<Channel[]>([]);
+  const [sources, setSources] = useState([]);
+  const [destinations, setDestinations] = useState([]);
+  const [alerts, setAlerts] = useState([]);
+
+  const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState(null);
+
+  // Dialog and form state
   const [selectedChannel, setSelectedChannel] = useState<Channel | null>(null);
   const [openChannelDialog, setOpenChannelDialog] = useState(false);
   const [isCreatingNewChannel, setIsCreatingNewChannel] = useState(false);
 
   const form = useForm<Channel>({
-    defaultValues: selectedChannel || {
+    defaultValues: {
       id: 0,
       name: "",
       source: "",
@@ -724,10 +164,189 @@ export default function Dashboard() {
       primaryDestinationIp: "",
       secondaryDestinationIp: "",
       encryptionEnabled: false,
-      protocol: "UDP TS"
+      protocol: "UDP TS",
+      bitrateIn: 0,
+      bitrateOut: 0
     }
   });
 
+  // Fetch data from server
+  useEffect(() => {
+    const fetchData = async () => {
+      try {
+        setIsLoading(true);
+
+        // Fetch dashboard status for overall stats
+        const statusData = await fetchWithAuth('/dashboard/status');
+        if (statusData.success) {
+          setChannelStats(statusData.data);
+        }
+
+        // Fetch channels
+        const channelsResponse = await fetchWithAuth('/arteries');
+        if (!channelsResponse.success) {
+          throw new Error('Failed to fetch channels');
+        }
+
+        // Fetch sources
+        const sourcesResponse = await fetchWithAuth('/sources');
+        if (!sourcesResponse.success) {
+          throw new Error('Failed to fetch sources');
+        }
+
+        // Fetch destinations
+        const destinationsResponse = await fetchWithAuth('/destinations');
+        if (!destinationsResponse.success) {
+          throw new Error('Failed to fetch destinations');
+        }
+
+        // Fetch alerts
+        const alertsResponse = await fetchWithAuth('/dashboard/alerts');
+        if (!alertsResponse.success) {
+          throw new Error('Failed to fetch alerts');
+        }
+
+        // Get top channels
+        const topChannelsResponse = await fetchWithAuth('/dashboard/arteries/top');
+        if (topChannelsResponse.success) {
+          setTopChannels(topChannelsResponse.data);
+        }
+
+        // Set raw data
+        setSources(sourcesResponse.data.data);
+        setDestinations(destinationsResponse.data.data);
+        setAlerts(alertsResponse.data);
+
+        // Process the channels data
+        processData(
+          channelsResponse.data.data,
+          sourcesResponse.data.data,
+          destinationsResponse.data.data,
+          alertsResponse.data
+        );
+
+        setIsLoading(false);
+      } catch (err) {
+        console.error('Error fetching data:', err);
+        setError(err.message);
+        setIsLoading(false);
+
+        if (err.message.includes('Failed to fetch')) {
+          toast({
+            title: "שרת לא זמין",
+            description: "נא לוודא שהשרת פועל ועל פורט 3000",
+            variant: "destructive"
+          });
+        }
+      }
+    };
+
+    fetchData();
+  }, []);
+
+  // Process the fetched data
+  const processData = (channels, sources, destinations, alerts) => {
+    // Map channels to the format expected by the components
+    const mappedChannels = channels.map(channel => {
+      // Find the source and destination names
+      const source = sources.find(s => s.id === channel.sourceId);
+      const destination = destinations.find(d => d.id === channel.destinationId);
+
+      return {
+        id: channel.id,
+        name: channel.name,
+        source: source ? source.name : 'Unknown Source',
+        destination: destination ? destination.name : 'Unknown Destination',
+        bandwidth: channel.bandwidth,
+        status: channel.status,
+        broadcastIp: channel.broadcastIp,
+        mode: channel.mode,
+        online: channel.online,
+        primaryDestinationIp: channel.primaryDestinationIp,
+        secondaryDestinationIp: channel.secondaryDestinationIp,
+        encryptionEnabled: channel.encryptionEnabled,
+        protocol: channel.protocol,
+        bitrateIn: channel.bitrateIn,
+        bitrateOut: channel.bitrateOut
+      };
+    });
+
+    // Set the channels data
+    setChannelsData(mappedChannels);
+
+    // Create artery channels for the scrollable component
+    const arteryChannelsData = channels.map(channel => {
+      const source = sources.find(s => s.id === channel.sourceId);
+      const destination = destinations.find(d => d.id === channel.destinationId);
+
+      return {
+        name: channel.name,
+        channelLink1Status: channel.online ? "online" : "offline",
+        channelLink2Status: channel.secondaryDestinationIp ? "online" : "offline",
+        cpu: Math.floor(Math.random() * 80) + 10, // Simulate CPU usage since server doesn't provide this
+        ram: Math.floor(Math.random() * 70) + 20, // Simulate RAM usage since server doesn't provide this
+        bitrateIn: channel.bitrateIn,
+        bitrateOut: channel.bitrateOut,
+        broadcastIP: channel.broadcastIp,
+        mode: channel.mode,
+        sources: [
+          {
+            name: source ? source.name : "Primary Source",
+            ip: source ? source.ipAddress : "Unknown IP",
+            status: "enabled"
+          },
+          ...(source ? [{
+            name: "Backup Source",
+            ip: source.ipAddress.replace(/\.\d+$/, '.11'), // Create a backup IP based on primary
+            status: "fallback"
+          }] : [])
+        ],
+        destinations: [
+          {
+            name: destination ? destination.name : "Main Output",
+            ip: channel.primaryDestinationIp,
+            type: "primary"
+          },
+          ...(channel.secondaryDestinationIp ? [{
+            name: "Backup Output",
+            ip: channel.secondaryDestinationIp,
+            type: "secondary"
+          }] : [])
+        ]
+      };
+    });
+
+    setArteryChannels(arteryChannelsData);
+
+    // Set top channels based on API response if not already set
+    if (topChannels.length === 0) {
+      // Calculate top channels if not received from API
+      const sortedChannels = [...channels]
+        .sort((a, b) => {
+          // Extract numeric part from bandwidth string and convert to number
+          const getBandwidthValue = (bw) => {
+            if (typeof bw === 'string') {
+              const match = bw.match(/(\d+\.?\d*)/);
+              return match ? parseFloat(match[1]) : 0;
+            }
+            return typeof bw === 'number' ? bw : 0;
+          };
+
+          const bandwidthA = getBandwidthValue(a.bandwidth);
+          const bandwidthB = getBandwidthValue(b.bandwidth);
+          return bandwidthB - bandwidthA;
+        })
+        .slice(0, 5)
+        .map(channel => ({
+          id: channel.id,
+          name: channel.name,
+          bandwidth: channel.bandwidth,
+          status: channel.status
+        }));
+
+      setTopChannels(sortedChannels);
+    }
+  };
 
   // Map Channel type to the format expected by ChannelDetailsDialog
   const mapChannelToDialogFormat = (channel: Channel) => {
@@ -764,9 +383,10 @@ export default function Dashboard() {
   };
 
   const handleCreateChannel = () => {
+    setIsCreatingNewChannel(true);
     setSelectedChannel(null);
     form.reset({
-      id: channelsData.length + 1,
+      id: channelsData.length > 0 ? Math.max(...channelsData.map(ch => ch.id)) + 1 : 1,
       name: "",
       source: "",
       destination: "",
@@ -786,26 +406,146 @@ export default function Dashboard() {
   };
 
   const handleViewChannel = (channel: Channel) => {
+    setIsCreatingNewChannel(false);
     setSelectedChannel(channel);
+    form.reset(channel);
+    setOpenChannelDialog(true);
   };
 
-  const handleSaveChannel = () => {
+  const handleSaveChannel = async () => {
     const formValues = form.getValues();
 
-    if (isCreatingNewChannel) {
-      channelsData.push(formValues);
-      channelStats.total += 1;
-      if (formValues.status === 'active') channelStats.active += 1;
-      if (formValues.status === 'standby') channelStats.standby += 1;
-      if (formValues.status === 'fault') channelStats.fault += 1;
-    } else if (selectedChannel) {
-      const index = channelsData.findIndex(ch => ch.id === selectedChannel.id);
-      if (index !== -1) {
-        channelsData[index] = formValues;
+    try {
+      if (isCreatingNewChannel) {
+        // Prepare data for API
+        const newChannelData = {
+          id: formValues.id,
+          name: formValues.name,
+          sourceId: sources.find(s => s.name === formValues.source)?.id || 1,
+          destinationId: destinations.find(d => d.name === formValues.destination)?.id || 1,
+          status: formValues.status,
+          mode: formValues.mode,
+          bandwidth: formValues.bandwidth,
+          broadcastIp: formValues.broadcastIp,
+          online: formValues.online,
+          primaryDestinationIp: formValues.primaryDestinationIp,
+          secondaryDestinationIp: formValues.secondaryDestinationIp,
+          encryptionEnabled: formValues.encryptionEnabled,
+          protocol: formValues.protocol,
+          bitrateIn: formValues.bitrateIn,
+          bitrateOut: formValues.bitrateOut
+        };
+
+        // Create new channel
+        const response = await fetchWithAuth('/arteries', {
+          method: 'POST',
+          body: JSON.stringify(newChannelData),
+        });
+
+        if (!response.success) {
+          throw new Error('Failed to create channel');
+        }
+
+        toast({
+          title: "ערוץ נוצר בהצלחה",
+          description: `הערוץ ${newChannelData.name} נוצר בהצלחה`,
+        });
+      } else if (selectedChannel) {
+        // Prepare data for API
+        const updatedChannelData = {
+          id: formValues.id,
+          name: formValues.name,
+          sourceId: sources.find(s => s.name === formValues.source)?.id ||
+            sources.find(s => s.id === selectedChannel.sourceId)?.id || 1,
+          destinationId: destinations.find(d => d.name === formValues.destination)?.id ||
+            destinations.find(d => d.id === selectedChannel.destinationId)?.id || 1,
+          status: formValues.status,
+          mode: formValues.mode,
+          bandwidth: formValues.bandwidth,
+          broadcastIp: formValues.broadcastIp,
+          online: formValues.online,
+          primaryDestinationIp: formValues.primaryDestinationIp,
+          secondaryDestinationIp: formValues.secondaryDestinationIp,
+          encryptionEnabled: formValues.encryptionEnabled,
+          protocol: formValues.protocol,
+          bitrateIn: formValues.bitrateIn,
+          bitrateOut: formValues.bitrateOut
+        };
+
+        // Update existing channel
+        const response = await fetchWithAuth(`/arteries/${selectedChannel.id}`, {
+          method: 'PUT',
+          body: JSON.stringify(updatedChannelData),
+        });
+
+        if (!response.success) {
+          throw new Error('Failed to update channel');
+        }
+
+        toast({
+          title: "ערוץ עודכן בהצלחה",
+          description: `הערוץ ${updatedChannelData.name} עודכן בהצלחה`,
+        });
       }
+
+      // Refresh data after successful operation
+      setOpenChannelDialog(false);
+      setIsLoading(true);
+
+      // Reload all data
+      const channelsResponse = await fetchWithAuth('/arteries');
+      const sourcesResponse = await fetchWithAuth('/sources');
+      const destinationsResponse = await fetchWithAuth('/destinations');
+      const alertsResponse = await fetchWithAuth('/dashboard/alerts');
+
+      setSources(sourcesResponse.data.data);
+      setDestinations(destinationsResponse.data.data);
+      setAlerts(alertsResponse.data);
+
+      processData(
+        channelsResponse.data.data,
+        sourcesResponse.data.data,
+        destinationsResponse.data.data,
+        alertsResponse.data
+      );
+
+      setIsLoading(false);
+
+    } catch (err) {
+      console.error('Error saving channel:', err);
+      toast({
+        title: "שגיאה בשמירת הערוץ",
+        description: err.message,
+        variant: "destructive"
+      });
     }
-    setOpenChannelDialog(false);
   };
+
+  // Show loading state while fetching data
+  if (isLoading) {
+    return (
+      <div className="flex items-center justify-center h-screen">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mx-auto"></div>
+          <p className="mt-4 text-lg">Loading dashboard data...</p>
+        </div>
+      </div>
+    );
+  }
+
+  // Show error state if data fetching failed
+  if (error) {
+    return (
+      <div className="flex items-center justify-center h-screen">
+        <div className="text-center">
+          <div className="text-red-500 text-5xl mb-4">⚠️</div>
+          <h2 className="text-2xl font-bold mb-2">Error Loading Data</h2>
+          <p className="text-gray-600 mb-4">{error}</p>
+          <Button onClick={() => window.location.reload()}>Retry</Button>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="space-y-6 animate-fade-in">
@@ -813,7 +553,7 @@ export default function Dashboard() {
         <h1 className="text-3xl font-bold tracking-tight">Dashboard</h1>
 
         <Badge variant="outline" className="text-sm">
-          Last updated: Just now
+          Last updated: {new Date().toLocaleTimeString()}
         </Badge>
       </div>
 
@@ -821,15 +561,15 @@ export default function Dashboard() {
 
       <Card>
         <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-          <CardTitle className="text-lg md:text-xl font-semibold">Live Channel Status</CardTitle>
-          <Button onClick={handleCreateChannel}>Add Channel</Button>
+          <CardTitle className="text-lg md:text-xl font-semibold">Live Artery Status</CardTitle>
+          <Button onClick={handleCreateChannel}>Add Artery</Button>
         </CardHeader>
         <Dialog open={openChannelDialog} onOpenChange={setOpenChannelDialog}>
           <DialogContent className="max-w-3xl">
             <DialogHeader>
-              <DialogTitle>{selectedChannel ? `Channel: ${selectedChannel.name}` : 'Create New Channel'}</DialogTitle>
+              <DialogTitle>{isCreatingNewChannel ? 'Create New Artery' : `Artery: ${selectedChannel?.name}`}</DialogTitle>
               <DialogDescription>
-                {selectedChannel ? 'View or edit channel configuration' : 'Configure a new channel'}
+                {isCreatingNewChannel ? 'Configure a new Artery' : 'View or edit artery configuration'}
               </DialogDescription>
             </DialogHeader>
 
@@ -859,7 +599,7 @@ export default function Dashboard() {
                     <Label htmlFor="channel-name">Channel Name</Label>
                     <Input
                       id="channel-name"
-                      defaultValue={selectedChannel?.name}
+                      {...form.register('name')}
                       placeholder="Enter channel name"
                     />
                   </div>
@@ -867,13 +607,16 @@ export default function Dashboard() {
                     <Label htmlFor="broadcast-ip">Broadcast IP Address</Label>
                     <Input
                       id="broadcast-ip"
-                      defaultValue={selectedChannel?.broadcastIp}
+                      {...form.register('broadcastIp')}
                       placeholder="e.g., 239.255.0.1"
                     />
                   </div>
                   <div className="space-y-2">
                     <Label htmlFor="channel-mode">Channel Mode</Label>
-                    <Select defaultValue={selectedChannel?.mode || "active"}>
+                    <Select
+                      defaultValue={form.getValues().mode}
+                      onValueChange={(value) => form.setValue('mode', value as "active" | "passive")}
+                    >
                       <SelectTrigger id="channel-mode">
                         <SelectValue placeholder="Select mode" />
                       </SelectTrigger>
@@ -885,7 +628,10 @@ export default function Dashboard() {
                   </div>
                   <div className="space-y-2">
                     <Label htmlFor="channel-status">Channel Status</Label>
-                    <Select defaultValue={selectedChannel?.online ? "online" : "offline"}>
+                    <Select
+                      defaultValue={form.getValues().online ? "online" : "offline"}
+                      onValueChange={(value) => form.setValue('online', value === "online")}
+                    >
                       <SelectTrigger id="channel-status">
                         <SelectValue placeholder="Select status" />
                       </SelectTrigger>
@@ -897,7 +643,10 @@ export default function Dashboard() {
                   </div>
                   <div className="space-y-2">
                     <Label htmlFor="channel-protocol">Protocol</Label>
-                    <Select defaultValue={selectedChannel?.protocol || "UDP TS"}>
+                    <Select
+                      defaultValue={form.getValues().protocol}
+                      onValueChange={(value) => form.setValue('protocol', value)}
+                    >
                       <SelectTrigger id="channel-protocol">
                         <SelectValue placeholder="Select protocol" />
                       </SelectTrigger>
@@ -911,7 +660,10 @@ export default function Dashboard() {
                   </div>
                   <div className="space-y-2">
                     <Label htmlFor="encryption">Encryption</Label>
-                    <Select defaultValue={selectedChannel?.encryptionEnabled ? "enabled" : "disabled"}>
+                    <Select
+                      defaultValue={form.getValues().encryptionEnabled ? "enabled" : "disabled"}
+                      onValueChange={(value) => form.setValue('encryptionEnabled', value === "enabled")}
+                    >
                       <SelectTrigger id="encryption">
                         <SelectValue placeholder="Select encryption" />
                       </SelectTrigger>
@@ -936,11 +688,28 @@ export default function Dashboard() {
                       <div className="grid gap-4 grid-cols-2">
                         <div className="space-y-2">
                           <Label htmlFor="source-name">Source Name</Label>
-                          <Input id="source-name" defaultValue={selectedChannel?.source} />
+                          <Select
+                            defaultValue={form.getValues().source}
+                            onValueChange={(value) => form.setValue('source', value)}
+                          >
+                            <SelectTrigger id="source-name">
+                              <SelectValue placeholder="Select source" />
+                            </SelectTrigger>
+                            <SelectContent>
+                              {sources.map(source => (
+                                <SelectItem key={source.id} value={source.name}>{source.name}</SelectItem>
+                              ))}
+                            </SelectContent>
+                          </Select>
                         </div>
                         <div className="space-y-2">
                           <Label htmlFor="source-ip">Source IP</Label>
-                          <Input id="source-ip" placeholder="Enter source IP" />
+                          <Input
+                            id="source-ip"
+                            placeholder="Source IP is determined by selected source"
+                            disabled
+                            value={sources.find(s => s.name === form.getValues().source)?.ipAddress || ''}
+                          />
                         </div>
                         <div className="space-y-2">
                           <Label htmlFor="source-status">Default Status</Label>
@@ -956,15 +725,12 @@ export default function Dashboard() {
                         </div>
                         <div className="space-y-2">
                           <Label htmlFor="source-protocol">Protocol</Label>
-                          <Select defaultValue="UDP TS">
-                            <SelectTrigger id="source-protocol">
-                              <SelectValue placeholder="Select protocol" />
-                            </SelectTrigger>
-                            <SelectContent>
-                              <SelectItem value="UDP TS">UDP TS</SelectItem>
-                              <SelectItem value="RTP">RTP</SelectItem>
-                            </SelectContent>
-                          </Select>
+                          <Input
+                            id="source-protocol"
+                            placeholder="Protocol is determined by selected source"
+                            disabled
+                            value={sources.find(s => s.name === form.getValues().source)?.protocol || ''}
+                          />
                         </div>
                       </div>
                     </CardContent>
@@ -987,43 +753,90 @@ export default function Dashboard() {
                       <div className="grid gap-4 grid-cols-2">
                         <div className="space-y-2">
                           <Label htmlFor="destination-name">Destination Name</Label>
-                          <Input id="destination-name" defaultValue={selectedChannel?.destination} />
+                          <Select
+                            defaultValue={form.getValues().destination}
+                            onValueChange={(value) => form.setValue('destination', value)}
+                          >
+                            <SelectTrigger id="destination-name">
+                              <SelectValue placeholder="Select destination" />
+                            </SelectTrigger>
+                            <SelectContent>
+                              {destinations.map(destination => (
+                                <SelectItem key={destination.id} value={destination.name}>{destination.name}</SelectItem>
+                              ))}
+                            </SelectContent>
+                          </Select>
                         </div>
                         <div className="space-y-2">
                           <Label htmlFor="destination-ip">Destination IP</Label>
-                          <Input id="destination-ip" defaultValue={selectedChannel?.primaryDestinationIp} />
+                          <Input
+                            id="destination-ip"
+                            {...form.register('primaryDestinationIp')} />
                         </div>
                         <div className="space-y-2">
                           <Label htmlFor="ttl">Time to Live (TTL)</Label>
-                          <Input id="ttl" type="number" defaultValue="64" />
+                          <Input
+                            id="ttl"
+                            type="number"
+                            defaultValue={destinations.find(d => d.name === form.getValues().destination)?.timeToLive || 64}
+                            disabled
+                          />
                         </div>
                         <div className="space-y-2">
                           <Label htmlFor="max-packet">Max Packet Size</Label>
-                          <Input id="max-packet" type="number" defaultValue="1500" />
+                          <Input
+                            id="max-packet"
+                            type="number"
+                            defaultValue={destinations.find(d => d.name === form.getValues().destination)?.maxPacketSize || 1500}
+                            disabled
+                          />
                         </div>
                       </div>
                     </CardContent>
                   </Card>
 
-                  {selectedChannel?.secondaryDestinationIp && (
-                    <Card>
-                      <CardHeader>
-                        <CardTitle className="text-base">Secondary Destination</CardTitle>
-                      </CardHeader>
+                  <Card>
+                    <CardHeader className="flex flex-row items-center justify-between pb-2">
+                      <CardTitle className="text-base">Secondary Destination</CardTitle>
+                      <div className="flex items-center space-x-2">
+                        <Label htmlFor="enable-secondary" className="cursor-pointer">Enable Secondary</Label>
+                        <input
+                          type="checkbox"
+                          id="enable-secondary"
+                          checked={!!form.getValues().secondaryDestinationIp}
+                          onChange={(e) => {
+                            if (!e.target.checked) {
+                              form.setValue('secondaryDestinationIp', null);
+                            } else if (!form.getValues().secondaryDestinationIp) {
+                              form.setValue('secondaryDestinationIp', '');
+                            }
+                          }}
+                          className="h-4 w-4"
+                        />
+                      </div>
+                    </CardHeader>
+                    {form.getValues().secondaryDestinationIp !== null && (
                       <CardContent>
                         <div className="grid gap-4 grid-cols-2">
                           <div className="space-y-2">
                             <Label htmlFor="sec-destination-name">Destination Name</Label>
-                            <Input id="sec-destination-name" defaultValue={`${selectedChannel?.destination} (Backup)`} />
+                            <Input
+                              id="sec-destination-name"
+                              defaultValue={`${form.getValues().destination || ''} (Backup)`}
+                              disabled
+                            />
                           </div>
                           <div className="space-y-2">
                             <Label htmlFor="sec-destination-ip">Destination IP</Label>
-                            <Input id="sec-destination-ip" defaultValue={selectedChannel?.secondaryDestinationIp} />
+                            <Input
+                              id="sec-destination-ip"
+                              {...form.register('secondaryDestinationIp')}
+                            />
                           </div>
                         </div>
                       </CardContent>
-                    </Card>
-                  )}
+                    )}
+                  </Card>
                 </div>
               </TabsContent>
 
@@ -1093,7 +906,7 @@ export default function Dashboard() {
 
             <DialogFooter>
               <Button variant="outline" onClick={() => setOpenChannelDialog(false)}>Cancel</Button>
-              <Button type="submit">Save Changes</Button>
+              <Button type="button" onClick={handleSaveChannel}>Save Changes</Button>
             </DialogFooter>
           </DialogContent>
         </Dialog>
@@ -1102,9 +915,9 @@ export default function Dashboard() {
             {/* Scrollable container */}
             <div
               className="flex space-x-4 overflow-x-auto px-2 
-          scrollbar-none [-ms-overflow-style:none] 
-          [scrollbar-width:none] 
-          [&::-webkit-scrollbar]:hidden"
+              scrollbar-none [-ms-overflow-style:none] 
+              [scrollbar-width:none] 
+              [&::-webkit-scrollbar]:hidden"
               id="channel-scroll-container"
             >
               {arteryChannels.map((ch, index) => (

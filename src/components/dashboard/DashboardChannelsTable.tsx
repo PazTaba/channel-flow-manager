@@ -12,6 +12,8 @@ export interface Channel {
   id: number;
   name: string;
   source: string;
+  destinationId:number;
+  sourceId :number;
   destination: string;
   bandwidth: string;
   status: "active" | "standby" | "fault";
@@ -122,8 +124,8 @@ export function DashboardChannelsTable({ data, onViewChannel }: DashboardChannel
   return (
     <Card>
       <CardHeader>
-        <CardTitle>Channel Management</CardTitle>
-        <CardDescription>View and manage all channel connections</CardDescription>
+        <CardTitle>Artery  Management</CardTitle>
+        <CardDescription>View and manage all Artery connections</CardDescription>
       </CardHeader>
       <CardContent>
         <div className="flex justify-end mb-4">

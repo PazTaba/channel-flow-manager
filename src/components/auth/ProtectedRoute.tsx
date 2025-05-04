@@ -36,6 +36,9 @@ export function ProtectedRoute({
   
   // Check if authentication is required but user is not authenticated
   if (requireAuth && !isAuthenticated()) {
+    console.log(requireAuth,"auth");
+    
+    
     // Redirect to login with the current location as a redirect parameter
     return <Navigate to={`${redirectTo}?redirectTo=${encodeURIComponent(location.pathname)}`} replace />;
   }
