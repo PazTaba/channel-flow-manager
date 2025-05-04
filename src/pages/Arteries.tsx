@@ -441,7 +441,7 @@ export default function Arteries() {
           className={
             artery.status === 'active' ? 'border-status-active text-status-active bg-green-50/50 dark:bg-green-900/10' :
             artery.status === 'standby' ? 'border-status-standby text-status-standby bg-amber-50/50 dark:bg-amber-900/10' :
-            artery.status === 'fault' ? 'border-status-fault text-status-fault bg-red-50/50 dark:bg-red-900/10'
+            'border-status-fault text-status-fault bg-red-50/50 dark:bg-red-900/10'
           }
         >
           {artery.status === 'active' ? 'Active' :
