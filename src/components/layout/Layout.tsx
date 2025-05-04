@@ -21,9 +21,12 @@ export const Layout = ({ className }: LayoutProps) => {
     <div className={cn("min-h-screen flex flex-col bg-background", className)}>
       <Sidebar 
         className="md:block hidden"
+        collapsed={collapsed}
       />
       <Header 
+        collapsed={collapsed} 
         className="md:pl-0" 
+        onToggleSidebar={toggleSidebar} 
       />
       <main className={cn(
         "flex-1 transition-all duration-300 ease-in-out p-4 md:p-6",

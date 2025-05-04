@@ -44,7 +44,7 @@ interface DashboardArteriesTableProps {
   onSwitchChannel?: (arteryId: number, useBackup: boolean) => void;
 }
 
-export function DashboardChannelsTable({ 
+export function DashboardArteriesTable({ 
   data, 
   onViewArtery, 
   onSwitchChannel 
@@ -73,7 +73,7 @@ export function DashboardChannelsTable({
     },
     {
       header: "Primary Destination",
-      accessorKey: "primaryChannel",
+      accessorKey: "primaryChannel.destination",
       cell: (artery) => (
         <div className="flex flex-col">
           <span>{artery.primaryChannel.destination}</span>
@@ -222,6 +222,3 @@ export function DashboardChannelsTable({
     </Card>
   );
 }
-
-// Also export the type for Channel to be used in Dashboard.tsx
-export type { Artery as Channel };
